@@ -17,8 +17,6 @@ encryption/decryption functions for:
 It is **not** a production‑ready cryptographic library – it is written purely
 for a college assignment, to illustrate the mechanics of the algorithms.
 
----
-
 Written in pure Rust, no external crates are used for the core implementation of the algorithms. The following crates are used elsewhere in the code:
 
 - aes and des crates are used for the tests to verify correctness of the custom implementation.
