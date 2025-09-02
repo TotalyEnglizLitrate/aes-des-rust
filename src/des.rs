@@ -27,10 +27,41 @@ impl CryptographicAlgorithm for TripleDes {
     const BLOCK_SIZE: usize = 8; // 3DES block size in bytes
     const KEY_SIZE: usize = 24; // 3DES key size in bytes (192 bits)
     fn encrypt(&self, plaintext: &[u8], key: &[u8]) -> Result<Vec<u8>, String> {
-        unimplemented!();
+        let (k1, k2, k3) = Self::split_keys(key)?;
+
+        // 3DES: Encrypt with K1, Decrypt with K2, Encrypt with K3
+        let first_encryption = self.des.encrypt(plaintext, k1)?;
+        let decryption = self.des.decrypt(&first_encryption, k2)?;
+        self.des.encrypt(&decryption, k3)
     }
 
     fn decrypt(&self, ciphertext: &[u8], key: &[u8]) -> Result<Vec<u8>, String> {
-        unimplemented!();
+        let (k1, k2, k3) = Self::split_keys(key)?;
+
+        // 3DES: Decrypt with K3, Encrypt with K2, Decrypt with K1
+        let first_decryption = self.des.decrypt(ciphertext, k3)?;
+        let encryption = self.des.encrypt(&first_decryption, k2)?;
+        self.des.decrypt(&encryption, k1)
     }
 }
+
+impl TripleDes {
+    /// Creates a new instance of TripleDes. Takes no arguments.
+    pub fn new() -> Self {
+        Self { des: Des }
+    }
+
+    /// Splits a 24-byte key into three 8-byte keys for 3DES.
+    /// # Arguments
+    /// * `key` - A byte slice representing the 24-byte key.
+    /// # Returns
+    /// - Ok((k1, k2, k3)) - A tuple containing three 8-byte keys.
+    /// - Err(String) - An error message if the key length is not 24 bytes.
+    fn split_keys(key: &[u8]) -> Result<(&[u8], &[u8], &[u8]), String> {
+        if key.len() != Self::KEY_SIZE {
+            return Err("Key must be 24 bytes long for 3DES".to_string());
+        }
+        Ok((&key[0..8], &key[8..16], &key[16..24]))
+    }
+}
+
