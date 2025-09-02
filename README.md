@@ -44,8 +44,9 @@ Written in pure Rust, no external crates are used for the core implementation of
 
 ## 4. Building
 
-```bash
 Written in Rust 1.89.0
+
+```bash
 rustup update stable
 
 git clone https://github.com/TotalyEnglizLitrate/aes-des-rust.git
