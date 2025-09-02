@@ -15,3 +15,17 @@ impl BlockCipher for Aes {
         unimplemented!()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::Aes;
+    use aes::Aes128 as AesImpl;
+
+    fn test_encryption_aes() {
+        unimplemented!()
+    }
+
+    fn test_decryption_aes() {
+        unimplemented!()
+    }
+}

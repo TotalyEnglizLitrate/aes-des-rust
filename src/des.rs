@@ -65,3 +65,28 @@ impl TripleDes {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::{Des, TripleDes};
+    use des::{Des as DesImpl, TdesEde3 as TripleDesImpl};
+
+    #[test]
+    fn test_encrytion_des() {
+        unimplemented!()
+    }
+
+    #[test]
+    fn test_decryption_des() {
+        unimplemented!()
+    }
+
+    #[test]
+    fn test_encryption_3des() {
+        unimplemented!()
+    }
+
+    #[test]
+    fn test_decryption_3des() {
+        unimplemented!()
+    }
+}

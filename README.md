@@ -31,13 +31,9 @@ Written in pure Rust, no external crates are used for the core implementation of
 ├── src/
 │   ├── aes.rs
 │   ├── des.rs
-│   ├── cryptographic_algorithm.rs # Trait for common functionality
-│   ├── main.rs
-├── tests/
-│   ├── aes_test.rs
-│   └── des_test.rs
-├── Cargo.toml
-└── README.md
+│   ├── block_cipher.rs # Trait for common functionality
+│   └── main.rs
+└── Cargo.toml
 ```
 
 ---

@@ -134,3 +134,59 @@ pub trait BlockCipher {
             .any(|&byte| byte as usize != padding_length)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::BlockCipher;
+
+    struct DummyCipher;
+
+    impl BlockCipher for DummyCipher {
+        const BLOCK_SIZE: usize = 8;
+        const KEY_SIZE: usize = 8;
+
+        fn encrypt(&self, plaintext: &[u8], _key: &[u8]) -> Result<Vec<u8>, String> {
+            Ok(plaintext.to_vec())
+        }
+
+        fn decrypt(&self, ciphertext: &[u8], _key: &[u8]) -> Result<Vec<u8>, String> {
+            Ok(ciphertext.to_vec())
+        }
+    }
+
+    #[test]
+    fn test_pad() {
+        let data = b"YELLOW SUBMARINE";
+        let padded = DummyCipher::pad(data);
+        assert_eq!(padded.len() % DummyCipher::BLOCK_SIZE, 0);
+        assert_eq!(&padded[data.len()..], &[0x08; 8][..]);
+    }
+
+    #[test]
+    fn test_unpad() {
+        let padded_data = b"YELLOW SUBMARINE\x08\x08\x08\x08\x08\x08\x08\x08";
+        let unpadded = DummyCipher::unpad(padded_data).unwrap();
+        assert_eq!(&unpadded, b"YELLOW SUBMARINE");
+    }
+
+    #[test]
+    fn test_is_padded() {
+        let padded_data = b"YELLOW SUBMARINE\x08\x08\x08\x08\x08\x08\x08\x08";
+        assert!(DummyCipher::is_padded(padded_data));
+
+        let unpadded_data = b"YELLOW SUBMARINE";
+        assert!(!DummyCipher::is_padded(unpadded_data));
+    }
+
+    #[test]
+    fn test_encrypt_decrypt() {
+        let cipher = DummyCipher;
+        let plaintext = b"Hello, World!";
+        let key = b"12345678";
+
+        let ciphertext = cipher.encrypt(plaintext, key).unwrap();
+        let decrypted = cipher.decrypt(&ciphertext, key).unwrap();
+
+        assert_eq!(plaintext.to_vec(), decrypted);
+    }
+}
