@@ -1,6 +1,6 @@
 # AES/DES implementation in Rust – Cryptography Assignment
 
-_A minimal, educational implementation of AES‑128 and DES in Rust._
+A minimal, educational implementation of AES‑128 and 3DES in Rust.
 
 ---
 
@@ -19,15 +19,10 @@ for a college assignment, to illustrate the mechanics of the algorithms.
 
 ---
 
-## 2. Features
+Written in pure Rust, no external crates are used for the core implementation of the algorithms. The following crates are used elsewhere in the code:
 
-- Pure Rust, no external crates are used for the core implementation of the algorithms. The following crates are used elsewhere in the code:
-  - aes and des crates are used for the tests to verify correctness of the custom implementation.
-  - clap is used for the command‑line demo utility.
-- Key‑schedule generation for both ciphers.
-- Full round‑functions (`S‑boxes`, `P‑boxes`, `Rcon`, `IP`/`FP` etc.).
-- Command‑line utilities to encrypt/decrypt files or strings.
-- Simple test vectors for both AES‑128 and DES (taken from NIST).
+- aes and des crates are used for the tests to verify correctness of the custom implementation.
+- clap is used for the command‑line demo utility.
 
 ---
 
