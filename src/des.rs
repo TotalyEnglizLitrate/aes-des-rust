@@ -51,12 +51,13 @@ impl TripleDes {
         Self { des: Des }
     }
 
-    /// Splits a 24-byte key into three 8-byte keys for 3DES.
+    /// Splits a TripleDes key into 3 induvidual DES keys
     /// # Arguments
-    /// * `key` - A byte slice representing the 24-byte key.
+    /// * `key` - A byte slice representing the TripleDes key.
     /// # Returns
-    /// - Ok((k1, k2, k3)) - A tuple containing three 8-byte keys.
-    /// - Err(String) - An error message if the key length is not 24 bytes.
+    /// - `Ok((k1, k2, k3))` - A tuple containing three induvidual DES keys.
+    /// - `Err(String)` - An error message if the key length is not the same as the expected number
+    /// of bytes.
     fn split_keys(key: &[u8]) -> Result<(&[u8], &[u8], &[u8]), String> {
         if key.len() != Self::KEY_SIZE {
             return Err("Key must be 24 bytes long for 3DES".to_string());

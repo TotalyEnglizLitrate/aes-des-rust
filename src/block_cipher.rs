@@ -17,8 +17,8 @@ pub trait BlockCipher {
     /// * `key` - The key used for encryption.
     ///
     /// # Returns
-    /// - Ok(Vec<u8>): A vector containing the encrypted data.
-    /// - Err(String): An error message if encryption fails.
+    /// - `Ok(Vec<u8>)`: A vector containing the encrypted data.
+    /// - `Err(String)`: An error message if encryption fails.
     ///
     /// # Examples
     /// ```
@@ -36,8 +36,8 @@ pub trait BlockCipher {
     /// * `key` - The key used for decryption.
     ///
     /// # Returns
-    /// - Ok(Vec<u8>): A vector containing the decrypted data.
-    /// - Err(String): An error message if decryption fails.
+    /// - `Ok(Vec<u8>)`: A vector containing the decrypted data.
+    /// - `Err(String)`: An error message if decryption fails.
     ///
     /// # Examples
     /// ```
@@ -59,6 +59,7 @@ pub trait BlockCipher {
     /// let algorithm: <T: impl BlockCipher> = YourAlgorithmImplementation;
     /// let data = b"YELLOW SUBMARINE";
     /// let padded_data = algorithm.pad(data);
+    /// assert!(algorithm.is_padded(&padded_data));
     /// ```
     fn pad(data: &[u8]) -> Vec<u8> {
         let padding_needed = Self::BLOCK_SIZE - (data.len() % Self::BLOCK_SIZE);
@@ -72,14 +73,15 @@ pub trait BlockCipher {
     /// # Arguments
     /// * `data` - The input data from which padding is to be removed.
     /// # Returns
-    /// - Ok(Vec<u8>): A vector containing the unpadded data.
-    /// - Err(String): An error message if unpadding fails.
+    /// - `Ok(Vec<u8>)`: A vector containing the unpadded data.
+    /// - `Err(String)`: An error message if unpadding fails.
     /// # Examples
     /// ```
     /// // Assumes block is 4 bytes for this example
     /// let algorithm: <T: impl BlockCipher> = YourAlgorithmImplementation;
     /// let padded_data = b"YELLOW SUBMARINE\x04\x04\x04\x04";
     /// let unpadded_data = algorithm.unpad(padded_data);
+    /// assert_eq!(unpadded_data.unwrap(), b"YELLOW SUBMARINE");
     /// ```
     fn unpad(data: &[u8]) -> Result<Vec<u8>, String> {
         if data.is_empty() {
