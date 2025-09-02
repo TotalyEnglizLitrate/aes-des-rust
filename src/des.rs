@@ -13,7 +13,7 @@ pub struct TripleDes {
 
 impl BlockCipher for Des {
     const BLOCK_SIZE: usize = 8; // DES block size in bytes
-    const KEY_SIZE: usize = 8; // DES key size in bytes (64 bits)
+    const KEY_SIZE: usize = 7; // DES key size in bytes (56 bits)
     fn encrypt(&self, plaintext: &[u8], key: &[u8]) -> Result<Vec<u8>, String> {
         unimplemented!()
     }
@@ -25,7 +25,7 @@ impl BlockCipher for Des {
 
 impl BlockCipher for TripleDes {
     const BLOCK_SIZE: usize = 8; // 3DES block size in bytes
-    const KEY_SIZE: usize = 24; // 3DES key size in bytes (192 bits)
+    const KEY_SIZE: usize = 21; // 3DES key size in bytes (168 bits i.e 3 * 56 bits)
     fn encrypt(&self, plaintext: &[u8], key: &[u8]) -> Result<Vec<u8>, String> {
         let (k1, k2, k3) = Self::split_keys(key)?;
 
