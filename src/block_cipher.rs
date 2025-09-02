@@ -76,6 +76,7 @@ pub trait BlockCipher {
     /// - Err(String): An error message if unpadding fails.
     /// # Examples
     /// ```
+    /// // Assumes block is 4 bytes for this example
     /// let algorithm: <T: impl BlockCipher> = YourAlgorithmImplementation;
     /// let padded_data = b"YELLOW SUBMARINE\x04\x04\x04\x04";
     /// let unpadded_data = algorithm.unpad(padded_data);
@@ -108,6 +109,7 @@ pub trait BlockCipher {
     /// - true if the data is correctly padded, false otherwise.
     /// # Examples
     /// ```
+    /// // Assumes block is 4 bytes for this example
     /// let algorithm: <T: impl BlockCipher> = YourAlgorithmImplementation;
     /// let padded_data = b"YELLOW SUBMARINE\x04\x04\x04\x04";
     /// let is_padded = algorithm.is_padded(padded_data);
