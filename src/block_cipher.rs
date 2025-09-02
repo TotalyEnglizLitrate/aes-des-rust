@@ -1,7 +1,7 @@
 /// A trait representing a generic cryptographic algorithm.
 /// This trait defines the essential methods and constants required for encryption and decryption
 /// operations.
-pub trait CryptographicAlgorithm {
+pub trait BlockCipher {
     /// The block size of the algorithm in bytes.
     /// For example, AES has a block size of 16 bytes (128 bits).
     const BLOCK_SIZE: usize;
@@ -22,7 +22,7 @@ pub trait CryptographicAlgorithm {
     ///
     /// # Examples
     /// ```
-    /// let algorithm: <T: impl CryptographicAlgorithm> = YourAlgorithmImplementation;
+    /// let algorithm: <T: impl BlockCipher> = YourAlgorithmImplementation;
     /// let plaintext = b"Hello, World!";
     /// let key = b"your-encryption-key";
     /// let ciphertext = algorithm.encrypt(plaintext, key).unwrap();
@@ -41,7 +41,7 @@ pub trait CryptographicAlgorithm {
     ///
     /// # Examples
     /// ```
-    /// let algorithm: <T: impl CryptographicAlgorithm> = YourAlgorithmImplementation;
+    /// let algorithm: <T: impl BlockCipher> = YourAlgorithmImplementation;
     /// let ciphertext = b"EncryptedData";
     /// let key = b"your-encryption-key";
     /// let plaintext = algorithm.decrypt(ciphertext, key).unwrap();
@@ -56,7 +56,7 @@ pub trait CryptographicAlgorithm {
     /// - A vector containing the padded data.
     /// # Examples
     /// ```
-    /// let algorithm: <T: impl CryptographicAlgorithm> = YourAlgorithmImplementation;
+    /// let algorithm: <T: impl BlockCipher> = YourAlgorithmImplementation;
     /// let data = b"YELLOW SUBMARINE";
     /// let padded_data = algorithm.pad(data);
     /// ```
@@ -76,7 +76,7 @@ pub trait CryptographicAlgorithm {
     /// - Err(String): An error message if unpadding fails.
     /// # Examples
     /// ```
-    /// let algorithm: <T: impl CryptographicAlgorithm> = YourAlgorithmImplementation;
+    /// let algorithm: <T: impl BlockCipher> = YourAlgorithmImplementation;
     /// let padded_data = b"YELLOW SUBMARINE\x04\x04\x04\x04";
     /// let unpadded_data = algorithm.unpad(padded_data);
     /// ```
@@ -108,7 +108,7 @@ pub trait CryptographicAlgorithm {
     /// - true if the data is correctly padded, false otherwise.
     /// # Examples
     /// ```
-    /// let algorithm: <T: impl CryptographicAlgorithm> = YourAlgorithmImplementation;
+    /// let algorithm: <T: impl BlockCipher> = YourAlgorithmImplementation;
     /// let padded_data = b"YELLOW SUBMARINE\x04\x04\x04\x04";
     /// let is_padded = algorithm.is_padded(padded_data);
     /// assert!(is_padded);

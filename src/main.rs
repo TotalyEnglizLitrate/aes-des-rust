@@ -1,5 +1,5 @@
 mod aes;
-mod cryptographic_algorithm;
+mod block_cipher;
 mod des;
 
 fn main() {
