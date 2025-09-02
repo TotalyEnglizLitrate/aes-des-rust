@@ -60,7 +60,11 @@ impl TripleDes {
     /// of bytes.
     fn split_keys(key: &[u8]) -> Result<(&[u8], &[u8], &[u8]), String> {
         if key.len() != Self::KEY_SIZE {
-            return Err("Key must be 24 bytes long for 3DES".to_string());
+            return Err(format!(
+                "Invalid key length: expected {} bytes, got {} bytes",
+                Self::KEY_SIZE,
+                key.len()
+            ));
         }
         Ok((&key[0..8], &key[8..16], &key[16..24]))
     }
