@@ -8,7 +8,7 @@ pub trait BlockCipher {
     const BLOCK_SIZE: usize;
 
     /// The key size of the algorithm in bytes.
-    /// For example, AES-128 has a key size of 16 bytes (128 bits
+    /// For example, AES-128 has a key size of 16 bytes (128 bits).
     const KEY_SIZE: usize;
 
     /// Encrypts the given plaintext using the specified key.
