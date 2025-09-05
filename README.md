@@ -9,15 +9,16 @@ A minimal, educational implementation of AES‑128 and 3DES in Rust.
 This repository contains a single‑purpose library that implements the core
 encryption/decryption functions for:
 
-| Cipher  | Key length | Block size | Algorithm                              | Status |
-| ------- | ---------- | ---------- | -------------------------------------- | ------ |
-| AES‑128 | 128 bits   | 128 bits   | Substitution‑permutation network (SPN) | WIP    |
-| DES     | 56 bits    | 64 bits    | Feistel network                        | WIP    |
+| Cipher  | Key length | Block size | Algorithm                              | Status    |
+| ------- | ---------- | ---------- | -------------------------------------- | --------- |
+| AES‑128 | 128 bits   | 128 bits   | Substitution‑permutation network (SPN) | WIP       |
+| DES     | 56 bits    | 64 bits    | Feistel network                        | Completed |
 
 It is **not** a production‑ready cryptographic library – it is written purely
 for a college assignment, to illustrate the mechanics of the algorithms.
 
 Written in pure Rust, no external crates are used for the core implementation of the algorithms. The following crates are used elsewhere in the code:
+
 - rand is used to generate random keys for testing
 - clap is used for the command‑line demo utility.
 
