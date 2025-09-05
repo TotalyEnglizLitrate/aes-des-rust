@@ -324,17 +324,10 @@ impl BlockCipher for Des {
 /// Internally uses [Des] for encryption and decryption.
 /// Implements the [BlockCipher] trait.
 #[allow(unused)]
-pub struct TripleDes {
-    des: Des,
-}
+pub struct TripleDes;
 
 #[allow(unused)]
 impl TripleDes {
-    /// Creates a new instance of TripleDes. Takes no arguments.
-    pub fn new() -> Self {
-        Self { des: Des }
-    }
-
     /// Splits a TripleDes key into 3 individual DES keys
     /// # Arguments
     /// * `key` - A byte slice representing the TripleDes key.
@@ -360,6 +353,12 @@ impl BlockCipher for TripleDes {
     fn encrypt(&self, plaintext: &[u8], key: &[u8], pad: bool) -> Result<Vec<u8>, String> {
         let (k1, k2, k3) = Self::split_keys(key)?;
 
+        Des::validate_key(k1)?;
+        Des::validate_key(k2)?;
+        Des::validate_key(k3)?;
+
+        let des = Des;
+
         // Pad plaintext if needed
         let padded = match (pad, Self::is_padded(plaintext)) {
             (true, true) => plaintext.to_vec(),
@@ -368,18 +367,24 @@ impl BlockCipher for TripleDes {
         };
 
         // 3DES: Encrypt with K1, Decrypt with K2, Encrypt with K3
-        let first_encryption = self.des.encrypt(&padded, k1, false)?;
-        let decryption = self.des.decrypt(&first_encryption, k2, false)?;
-        self.des.encrypt(&decryption, k3, false)
+        let first_encryption = des.encrypt(&padded, k1, false)?;
+        let decryption = des.decrypt(&first_encryption, k2, false)?;
+        des.encrypt(&decryption, k3, false)
     }
 
     fn decrypt(&self, ciphertext: &[u8], key: &[u8], unpad: bool) -> Result<Vec<u8>, String> {
         let (k1, k2, k3) = Self::split_keys(key)?;
 
+        Des::validate_key(k1)?;
+        Des::validate_key(k2)?;
+        Des::validate_key(k3)?;
+
+        let des = Des;
+
         // 3DES: Decrypt with K3, Encrypt with K2, Decrypt with K1
-        let first_decryption = self.des.decrypt(ciphertext, k3, false)?;
-        let encryption = self.des.encrypt(&first_decryption, k2, false)?;
-        let plaintext = self.des.decrypt(&encryption, k1, false)?;
+        let first_decryption = des.decrypt(ciphertext, k3, false)?;
+        let encryption = des.encrypt(&first_decryption, k2, false)?;
+        let plaintext = des.decrypt(&encryption, k1, false)?;
         if unpad {
             Self::unpad(&plaintext)
         } else {
@@ -420,7 +425,7 @@ mod tests {
         let plaintext = "Food for thought";
         let mut key: [u8; 24] = rand::rng().random();
         set_key_parity(&mut key);
-        let tripledes = TripleDes::new();
+        let tripledes = TripleDes;
         let ciphertext = tripledes.encrypt(plaintext.as_bytes(), &key, true).unwrap();
         let decrypted = tripledes.decrypt(&ciphertext, &key, true).unwrap();
 
