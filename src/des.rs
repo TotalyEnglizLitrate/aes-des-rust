@@ -228,6 +228,15 @@ impl Des {
     fn combine_28_bit_halves(c: u32, d: u32) -> u64 {
         ((c as u64) << 28) | (d as u64)
     }
+
+    fn validate_key(key: &[u8]) -> Result<(), String> {
+        <Self as BlockCipher>::validate_key(key)?;
+        if key.iter().all(|&b| b.count_ones() & 1 == 1) {
+            Ok(())
+        } else {
+            Err("Invalid DES key parity".to_string())
+        }
+    }
 }
 
 impl BlockCipher for Des {
@@ -384,10 +393,19 @@ mod tests {
     use super::{BlockCipher, Des, TripleDes};
     use rand::Rng;
 
+    fn set_key_parity(key: &mut [u8]) {
+        for byte in key.iter_mut() {
+            if byte.count_ones() & 1 == 0 {
+                *byte = *byte ^ 1;
+            }
+        }
+    }
+
     #[test]
     fn test_encrytion_decryption_des() {
         let plaintext = "Food for thought";
-        let key: [u8; 8] = rand::rng().random();
+        let mut key: [u8; 8] = rand::rng().random();
+        set_key_parity(&mut key);
         let des = Des;
         let ciphertext = des.encrypt(plaintext.as_bytes(), &key, true).unwrap();
         let decrypted = des.decrypt(&ciphertext, &key, true).unwrap();
@@ -400,7 +418,8 @@ mod tests {
     #[test]
     fn test_encrytion_decryption_3des() {
         let plaintext = "Food for thought";
-        let key: [u8; 24] = rand::rng().random();
+        let mut key: [u8; 24] = rand::rng().random();
+        set_key_parity(&mut key);
         let tripledes = TripleDes::new();
         let ciphertext = tripledes.encrypt(plaintext.as_bytes(), &key, true).unwrap();
         let decrypted = tripledes.decrypt(&ciphertext, &key, true).unwrap();
