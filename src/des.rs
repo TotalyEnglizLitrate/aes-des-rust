@@ -107,7 +107,6 @@ pub struct TripleDes {
     des: Des,
 }
 
-#[allow(unused)]
 impl BlockCipher for Des {
     const BLOCK_SIZE: usize = 8; // DES block size in bytes
     const KEY_SIZE: usize = 8; // DES key size in bytes (64 bits, including parity)
@@ -132,7 +131,7 @@ impl BlockCipher for Des {
             let mut block_arr = [0u8; 8];
             block_arr.copy_from_slice(block);
 
-            let mut block_u64 = Self::initial_permutation(&block_arr);
+            let block_u64 = Self::initial_permutation(&block_arr);
 
             let mut l = (block_u64 >> 32) as u32;
             let mut r = (block_u64 & 0xFFFF_FFFF) as u32;
@@ -164,7 +163,7 @@ impl BlockCipher for Des {
             let mut block_arr = [0u8; 8];
             block_arr.copy_from_slice(block);
 
-            let mut block_u64 = Self::initial_permutation(&block_arr);
+            let block_u64 = Self::initial_permutation(&block_arr);
 
             let mut l = (block_u64 >> 32) as u32;
             let mut r = (block_u64 & 0xFFFF_FFFF) as u32;
@@ -186,7 +185,7 @@ impl BlockCipher for Des {
     }
 }
 
-#[allow(unused)]
+#[allow(dead_code)]
 impl Des {
     /// Performs the Feistel function for a single DES round.
     ///
@@ -458,7 +457,6 @@ impl TripleDes {
 }
 
 #[cfg(test)]
-#[allow(unused)]
 mod tests {
     use super::{BlockCipher, Des, TripleDes};
 
