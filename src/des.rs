@@ -110,11 +110,11 @@ pub struct TripleDes {
 impl BlockCipher for Des {
     const BLOCK_SIZE: usize = 8; // DES block size in bytes
     const KEY_SIZE: usize = 8; // DES key size in bytes (64 bits, including parity)
-    fn encrypt(&self, plaintext: &[u8], key: &[u8]) -> Result<Vec<u8>, String> {
+    fn encrypt(&self, plaintext: &[u8], key: &[u8], pad: bool) -> Result<Vec<u8>, String> {
         Self::validate_key(key)?;
 
         // Pad plaintext if needed
-        let padded = if Self::is_padded(plaintext) {
+        let padded = if pad && Self::is_padded(plaintext) {
             plaintext.to_vec()
         } else {
             Self::pad(plaintext)
@@ -151,7 +151,7 @@ impl BlockCipher for Des {
         Ok(ciphertext)
     }
 
-    fn decrypt(&self, ciphertext: &[u8], key: &[u8]) -> Result<Vec<u8>, String> {
+    fn decrypt(&self, ciphertext: &[u8], key: &[u8], unpad: bool) -> Result<Vec<u8>, String> {
         Self::validate_key(key)?;
 
         let key_arr: [u8; 8] = key.try_into().map_err(|_| "Key must be 8 bytes")?;
@@ -180,8 +180,11 @@ impl BlockCipher for Des {
             plaintext.extend_from_slice(&decrypted_block);
         }
 
-        // Unpad the plaintext
-        Self::unpad(&plaintext)
+        if unpad {
+            Self::unpad(&plaintext)
+        } else {
+            Ok(plaintext.to_vec())
+        }
     }
 }
 
@@ -210,7 +213,6 @@ impl Des {
             expanded |= (bit as u64) << (47 - i);
         }
 
-        // Key mixing: XOR with round key
         let mut expanded_bytes = [0u8; 6];
         for i in 0..6 {
             expanded_bytes[i] = ((expanded >> (8 * (5 - i))) & 0xFF) as u8;
@@ -219,10 +221,14 @@ impl Des {
             expanded_bytes[i] ^= round_key[i];
         }
 
+        let xor_val: u64 = expanded_bytes
+            .iter()
+            .fold(0u64, |acc, &b| (acc << 8) | b as u64);
+
         // S-box substitution
         let mut sbox_out = 0u32;
         for i in 0..8 {
-            let chunk = ((expanded >> (42 - 6 * i)) & 0x3F) as u8;
+            let chunk = ((xor_val >> (42 - 6 * i)) & 0x3F) as u8;
             let row = ((chunk & 0b100000) >> 4) | (chunk & 0b000001);
             let col = (chunk & 0b011110) >> 1;
 
@@ -335,7 +341,6 @@ impl Des {
                 }
             }
         }
-
         round_keys
     }
 
@@ -411,22 +416,34 @@ impl Des {
 impl BlockCipher for TripleDes {
     const BLOCK_SIZE: usize = 8; // 3DES block size in bytes
     const KEY_SIZE: usize = 24; // 3DES key size in bytes (192 bits i.e 3 * 64 bits)
-    fn encrypt(&self, plaintext: &[u8], key: &[u8]) -> Result<Vec<u8>, String> {
+    fn encrypt(&self, plaintext: &[u8], key: &[u8], pad: bool) -> Result<Vec<u8>, String> {
         let (k1, k2, k3) = Self::split_keys(key)?;
 
+        // Pad plaintext if needed
+        let padded = if pad && Self::is_padded(plaintext) {
+            plaintext.to_vec()
+        } else {
+            Self::pad(plaintext)
+        };
+
         // 3DES: Encrypt with K1, Decrypt with K2, Encrypt with K3
-        let first_encryption = self.des.encrypt(plaintext, k1)?;
-        let decryption = self.des.decrypt(&first_encryption, k2)?;
-        self.des.encrypt(&decryption, k3)
+        let first_encryption = self.des.encrypt(&padded, k1, false)?;
+        let decryption = self.des.decrypt(&first_encryption, k2, false)?;
+        self.des.encrypt(&decryption, k3, false)
     }
 
-    fn decrypt(&self, ciphertext: &[u8], key: &[u8]) -> Result<Vec<u8>, String> {
+    fn decrypt(&self, ciphertext: &[u8], key: &[u8], unpad: bool) -> Result<Vec<u8>, String> {
         let (k1, k2, k3) = Self::split_keys(key)?;
 
         // 3DES: Decrypt with K3, Encrypt with K2, Decrypt with K1
-        let first_decryption = self.des.decrypt(ciphertext, k3)?;
-        let encryption = self.des.encrypt(&first_decryption, k2)?;
-        self.des.decrypt(&encryption, k1)
+        let first_decryption = self.des.decrypt(ciphertext, k3, false)?;
+        let encryption = self.des.encrypt(&first_decryption, k2, false)?;
+        let plaintext = self.des.decrypt(&encryption, k1, false)?;
+        if unpad {
+            Self::unpad(&plaintext)
+        } else {
+            Ok(plaintext)
+        }
     }
 }
 
@@ -463,22 +480,26 @@ mod tests {
 
     #[test]
     fn test_encrytion_decryption_des() {
-        let plaintext = "Hello World!";
+        let plaintext = "Food for thought";
         let key: [u8; 8] = rand::rng().random();
         let des = Des;
-        let ciphertext = des.encrypt(plaintext.as_bytes(), &key).unwrap();
-        let decrypted = des.decrypt(&ciphertext, &key).unwrap();
+        let ciphertext = des.encrypt(plaintext.as_bytes(), &key, true).unwrap();
+        let decrypted = des.decrypt(&ciphertext, &key, true).unwrap();
+
+        println!("key: {:?}\nciphertext: {:?}", key, ciphertext);
 
         assert_eq!(plaintext, String::from_utf8(decrypted).unwrap());
     }
 
     #[test]
     fn test_encrytion_decryption_3des() {
-        let plaintext = "Hello World!";
+        let plaintext = "Food for thought";
         let key: [u8; 24] = rand::rng().random();
         let tripledes = TripleDes::new();
-        let ciphertext = tripledes.encrypt(plaintext.as_bytes(), &key).unwrap();
-        let decrypted = tripledes.decrypt(&ciphertext, &key).unwrap();
+        let ciphertext = tripledes.encrypt(plaintext.as_bytes(), &key, true).unwrap();
+        let decrypted = tripledes.decrypt(&ciphertext, &key, true).unwrap();
+
+        println!("key: {:?}\nciphertext: {:?}", key, ciphertext);
 
         assert_eq!(plaintext, String::from_utf8(decrypted).unwrap());
     }

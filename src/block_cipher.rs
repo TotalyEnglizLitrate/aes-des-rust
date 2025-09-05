@@ -16,6 +16,8 @@ pub trait BlockCipher {
     /// # Arguments
     /// * `plaintext` - The data to be encrypted.
     /// * `key` - The key used for encryption.
+    /// * `pad` - Whether to pad the plaintext before encryption - set to false to omit ONLY IF
+    /// DATA IS PADDED ELSEWHERE
     ///
     /// # Returns
     /// - `Ok(Vec<u8>)`: A vector containing the encrypted data.
@@ -28,13 +30,14 @@ pub trait BlockCipher {
     /// let key = b"your-encryption-key";
     /// let ciphertext = algorithm.encrypt(plaintext, key).unwrap();
     /// ```
-    fn encrypt(&self, plaintext: &[u8], key: &[u8]) -> Result<Vec<u8>, String>;
+    fn encrypt(&self, plaintext: &[u8], key: &[u8], pad: bool) -> Result<Vec<u8>, String>;
 
     /// Decrypts the given ciphertext using the specified key.
     ///
     /// # Arguments
     /// * `ciphertext` - The data to be decrypted.
     /// * `key` - The key used for decryption.
+    /// * `unpad` - Wheter to unpad the decrypted plaintext data - set to false to omit
     ///
     /// # Returns
     /// - `Ok(Vec<u8>)`: A vector containing the decrypted data.
@@ -47,7 +50,7 @@ pub trait BlockCipher {
     /// let key = b"your-encryption-key";
     /// let plaintext = algorithm.decrypt(ciphertext, key).unwrap();
     /// ```
-    fn decrypt(&self, ciphertext: &[u8], key: &[u8]) -> Result<Vec<u8>, String>;
+    fn decrypt(&self, ciphertext: &[u8], key: &[u8], pad: bool) -> Result<Vec<u8>, String>;
 
     /// Pads the input data to ensure its length is a multiple of the block size.
     /// This method uses PKCS#7 padding scheme.
@@ -165,11 +168,11 @@ mod tests {
         const BLOCK_SIZE: usize = 8;
         const KEY_SIZE: usize = 8;
 
-        fn encrypt(&self, plaintext: &[u8], _key: &[u8]) -> Result<Vec<u8>, String> {
+        fn encrypt(&self, plaintext: &[u8], _key: &[u8], _pad: bool) -> Result<Vec<u8>, String> {
             Ok(plaintext.to_vec())
         }
 
-        fn decrypt(&self, ciphertext: &[u8], _key: &[u8]) -> Result<Vec<u8>, String> {
+        fn decrypt(&self, ciphertext: &[u8], _key: &[u8], _pad: bool) -> Result<Vec<u8>, String> {
             Ok(ciphertext.to_vec())
         }
     }
@@ -204,8 +207,8 @@ mod tests {
         let plaintext = b"Hello, World!";
         let key = b"12345678";
 
-        let ciphertext = cipher.encrypt(plaintext, key).unwrap();
-        let decrypted = cipher.decrypt(&ciphertext, key).unwrap();
+        let ciphertext = cipher.encrypt(plaintext, key, true).unwrap();
+        let decrypted = cipher.decrypt(&ciphertext, key, true).unwrap();
 
         assert_eq!(plaintext.to_vec(), decrypted);
     }

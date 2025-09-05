@@ -9,11 +9,11 @@ pub struct Aes;
 impl BlockCipher for Aes {
     const BLOCK_SIZE: usize = 16; // AES block size in bytes
     const KEY_SIZE: usize = 16; // AES key size in bytes (128 bits)
-    fn encrypt(&self, plaintext: &[u8], key: &[u8]) -> Result<Vec<u8>, String> {
+    fn encrypt(&self, plaintext: &[u8], key: &[u8], pad: bool) -> Result<Vec<u8>, String> {
         unimplemented!()
     }
 
-    fn decrypt(&self, ciphertext: &[u8], key: &[u8]) -> Result<Vec<u8>, String> {
+    fn decrypt(&self, ciphertext: &[u8], key: &[u8], pad: bool) -> Result<Vec<u8>, String> {
         unimplemented!()
     }
 }
@@ -23,11 +23,7 @@ impl BlockCipher for Aes {
 mod tests {
     use super::Aes;
 
-    fn test_encryption_aes() {
-        unimplemented!()
-    }
-
-    fn test_decryption_aes() {
+    fn test_encryption_decryption_aes() {
         unimplemented!()
     }
 }
