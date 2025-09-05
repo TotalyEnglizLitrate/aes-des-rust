@@ -460,8 +460,7 @@ impl TripleDes {
 #[cfg(test)]
 #[allow(unused)]
 mod tests {
-    use super::{Des, TripleDes};
-    use crate::block_cipher::BlockCipher;
+    use super::{BlockCipher, Des, TripleDes};
 
     #[test]
     fn test_encrytion_decryption_des() {
