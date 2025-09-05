@@ -13,6 +13,7 @@ encryption/decryption functions for:
 | ------- | ---------- | ---------- | -------------------------------------- | --------- |
 | AES‑128 | 128 bits   | 128 bits   | Substitution‑permutation network (SPN) | WIP       |
 | DES     | 56 bits    | 64 bits    | Feistel network                        | Completed |
+| 3DES    | 192 bits   | 64 bits    | 3 key encrypt-decrypt-encrypt with DES | Completed |
 
 It is **not** a production‑ready cryptographic library – it is written purely
 for a college assignment, to illustrate the mechanics of the algorithms.

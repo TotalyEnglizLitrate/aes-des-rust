@@ -114,10 +114,10 @@ impl BlockCipher for Des {
         Self::validate_key(key)?;
 
         // Pad plaintext if needed
-        let padded = if pad && Self::is_padded(plaintext) {
-            plaintext.to_vec()
-        } else {
-            Self::pad(plaintext)
+        let padded = match (pad, Self::is_padded(plaintext)) {
+            (true, true) => plaintext.to_vec(),
+            (true, false) => Self::pad(plaintext),
+            (false, _) => plaintext.to_vec(),
         };
 
         // We can call unwrap() without worrying about panicking because we validate the key length
@@ -420,10 +420,10 @@ impl BlockCipher for TripleDes {
         let (k1, k2, k3) = Self::split_keys(key)?;
 
         // Pad plaintext if needed
-        let padded = if pad && Self::is_padded(plaintext) {
-            plaintext.to_vec()
-        } else {
-            Self::pad(plaintext)
+        let padded = match (pad, Self::is_padded(plaintext)) {
+            (true, true) => plaintext.to_vec(),
+            (true, false) => Self::pad(plaintext),
+            (false, _) => plaintext.to_vec(),
         };
 
         // 3DES: Encrypt with K1, Decrypt with K2, Encrypt with K3
