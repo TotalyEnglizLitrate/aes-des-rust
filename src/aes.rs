@@ -5,6 +5,7 @@ use crate::block_cipher::BlockCipher;
 #[allow(unused)]
 pub struct Aes;
 
+#[allow(unused)]
 impl BlockCipher for Aes {
     const BLOCK_SIZE: usize = 16; // AES block size in bytes
     const KEY_SIZE: usize = 16; // AES key size in bytes (128 bits)
