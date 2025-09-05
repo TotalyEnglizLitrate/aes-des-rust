@@ -24,21 +24,7 @@ Written in pure Rust, no external crates are used for the core implementation of
 
 ---
 
-## 3. Directory layout
-
-```
-.
-├── src/
-│   ├── aes.rs
-│   ├── des.rs
-│   ├── block_cipher.rs # Trait for common functionality
-│   └── main.rs
-└── Cargo.toml
-```
-
----
-
-## 4. Building
+## 3. Building
 
 Written in Rust 1.89.0
 
@@ -59,13 +45,13 @@ cargo run --release -- --help
 
 ---
 
-## 5. Usage
+## 4. Usage
 
 TODO: Add examples for encrypting/decrypting files or strings using the CLI.
 
 ---
 
-## 6. Tests
+## 5. Tests
 
 Run all tests with:
 
@@ -75,7 +61,7 @@ cargo test
 
 ---
 
-## 7. Important Points
+## 6. Important Points
 
 - **Security Disclaimer** – The implementation is deliberately simple
   and may omit timing‑attack mitigations, constant‑time comparisons, or
@@ -85,6 +71,6 @@ cargo test
 
 ---
 
-## 8. Author
+## 7. Author
 
-_Narendra Sampath Kumar_ – `narendra24110064@snuchennai.edu.in`
+Narendra Sampath Kumar – [`narendra24110064@snuchennai.edu.in`](mailto:narendra24110064@snuchennai.edu.in)
