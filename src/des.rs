@@ -5,95 +5,6 @@ use crate::{block_cipher::BlockCipher, constants::des::*};
 #[allow(unused)]
 pub struct Des;
 
-/// Triple Data Encryption Standard (3DES) implementation.
-/// Internally uses [Des] for encryption and decryption.
-/// Implements the [BlockCipher] trait.
-#[allow(unused)]
-pub struct TripleDes {
-    des: Des,
-}
-
-impl BlockCipher for Des {
-    const BLOCK_SIZE: usize = 8; // DES block size in bytes
-    const KEY_SIZE: usize = 8; // DES key size in bytes (64 bits, including parity)
-    fn encrypt(&self, plaintext: &[u8], key: &[u8], pad: bool) -> Result<Vec<u8>, String> {
-        Self::validate_key(key)?;
-
-        // Pad plaintext if needed
-        let padded = match (pad, Self::is_padded(plaintext)) {
-            (true, true) => plaintext.to_vec(),
-            (true, false) => Self::pad(plaintext),
-            (false, _) => plaintext.to_vec(),
-        };
-
-        // We can call unwrap() without worrying about panicking because we validate the key length
-        // at the start of the function
-        let key_arr: [u8; 8] = key.try_into().unwrap();
-        let round_keys = Self::round_keys(&key_arr);
-
-        let mut ciphertext = Vec::with_capacity(padded.len());
-
-        for block in padded.chunks(Self::BLOCK_SIZE) {
-            let mut block_arr = [0u8; 8];
-            block_arr.copy_from_slice(block);
-
-            let block_u64 = Self::initial_permutation(&block_arr);
-
-            let mut l = (block_u64 >> 32) as u32;
-            let mut r = (block_u64 & 0xFFFF_FFFF) as u32;
-
-            // 16 rounds
-            for i in 0..16 {
-                let temp = r;
-                r = l ^ Self::feistel(r, &round_keys[i]);
-                l = temp;
-            }
-
-            let preoutput = ((r as u64) << 32) | (l as u64);
-            let encrypted_block = Self::final_permutation(preoutput);
-            ciphertext.extend_from_slice(&encrypted_block);
-        }
-
-        Ok(ciphertext)
-    }
-
-    fn decrypt(&self, ciphertext: &[u8], key: &[u8], unpad: bool) -> Result<Vec<u8>, String> {
-        Self::validate_key(key)?;
-
-        let key_arr: [u8; 8] = key.try_into().map_err(|_| "Key must be 8 bytes")?;
-        let round_keys = Self::round_keys(&key_arr);
-
-        let mut plaintext = Vec::with_capacity(ciphertext.len());
-
-        for block in ciphertext.chunks(Self::BLOCK_SIZE) {
-            let mut block_arr = [0u8; 8];
-            block_arr.copy_from_slice(block);
-
-            let block_u64 = Self::initial_permutation(&block_arr);
-
-            let mut l = (block_u64 >> 32) as u32;
-            let mut r = (block_u64 & 0xFFFF_FFFF) as u32;
-
-            // 16 rounds in reverse order
-            for i in (0..16).rev() {
-                let temp = r;
-                r = l ^ Self::feistel(r, &round_keys[i]);
-                l = temp;
-            }
-
-            let preoutput = ((r as u64) << 32) | (l as u64);
-            let decrypted_block = Self::final_permutation(preoutput);
-            plaintext.extend_from_slice(&decrypted_block);
-        }
-
-        if unpad {
-            Self::unpad(&plaintext)
-        } else {
-            Ok(plaintext.to_vec())
-        }
-    }
-}
-
 #[allow(dead_code)]
 impl Des {
     /// Performs the Feistel function for a single DES round.
@@ -319,6 +230,121 @@ impl Des {
     }
 }
 
+impl BlockCipher for Des {
+    const BLOCK_SIZE: usize = 8; // DES block size in bytes
+    const KEY_SIZE: usize = 8; // DES key size in bytes (64 bits, including parity)
+    fn encrypt(&self, plaintext: &[u8], key: &[u8], pad: bool) -> Result<Vec<u8>, String> {
+        Self::validate_key(key)?;
+
+        // Pad plaintext if needed
+        let padded = match (pad, Self::is_padded(plaintext)) {
+            (true, true) => plaintext.to_vec(),
+            (true, false) => Self::pad(plaintext),
+            (false, _) => plaintext.to_vec(),
+        };
+
+        // We can call unwrap() without worrying about panicking because we validate the key length
+        // at the start of the function
+        let key_arr: [u8; 8] = key.try_into().unwrap();
+        let round_keys = Self::round_keys(&key_arr);
+
+        let mut ciphertext = Vec::with_capacity(padded.len());
+
+        for block in padded.chunks(Self::BLOCK_SIZE) {
+            let mut block_arr = [0u8; 8];
+            block_arr.copy_from_slice(block);
+
+            let block_u64 = Self::initial_permutation(&block_arr);
+
+            let mut l = (block_u64 >> 32) as u32;
+            let mut r = (block_u64 & 0xFFFF_FFFF) as u32;
+
+            // 16 rounds
+            for i in 0..16 {
+                let temp = r;
+                r = l ^ Self::feistel(r, &round_keys[i]);
+                l = temp;
+            }
+
+            let preoutput = ((r as u64) << 32) | (l as u64);
+            let encrypted_block = Self::final_permutation(preoutput);
+            ciphertext.extend_from_slice(&encrypted_block);
+        }
+
+        Ok(ciphertext)
+    }
+
+    fn decrypt(&self, ciphertext: &[u8], key: &[u8], unpad: bool) -> Result<Vec<u8>, String> {
+        Self::validate_key(key)?;
+
+        let key_arr: [u8; 8] = key.try_into().map_err(|_| "Key must be 8 bytes")?;
+        let round_keys = Self::round_keys(&key_arr);
+
+        let mut plaintext = Vec::with_capacity(ciphertext.len());
+
+        for block in ciphertext.chunks(Self::BLOCK_SIZE) {
+            let mut block_arr = [0u8; 8];
+            block_arr.copy_from_slice(block);
+
+            let block_u64 = Self::initial_permutation(&block_arr);
+
+            let mut l = (block_u64 >> 32) as u32;
+            let mut r = (block_u64 & 0xFFFF_FFFF) as u32;
+
+            // 16 rounds in reverse order
+            for i in (0..16).rev() {
+                let temp = r;
+                r = l ^ Self::feistel(r, &round_keys[i]);
+                l = temp;
+            }
+
+            let preoutput = ((r as u64) << 32) | (l as u64);
+            let decrypted_block = Self::final_permutation(preoutput);
+            plaintext.extend_from_slice(&decrypted_block);
+        }
+
+        if unpad {
+            Self::unpad(&plaintext)
+        } else {
+            Ok(plaintext.to_vec())
+        }
+    }
+}
+
+/// Triple Data Encryption Standard (3DES) implementation.
+/// Internally uses [Des] for encryption and decryption.
+/// Implements the [BlockCipher] trait.
+#[allow(unused)]
+pub struct TripleDes {
+    des: Des,
+}
+
+#[allow(unused)]
+impl TripleDes {
+    /// Creates a new instance of TripleDes. Takes no arguments.
+    pub fn new() -> Self {
+        Self { des: Des }
+    }
+
+    /// Splits a TripleDes key into 3 individual DES keys
+    /// # Arguments
+    /// * `key` - A byte slice representing the TripleDes key.
+    /// # Returns
+    /// - `Ok((k1, k2, k3))` - A tuple containing three induvidual DES keys.
+    /// - `Err(String)` - An error message if the key length is not the same as the expected number
+    /// of bytes.
+    fn split_keys(key: &[u8]) -> Result<(&[u8], &[u8], &[u8]), String> {
+        if key.len() != Self::KEY_SIZE {
+            return Err(format!(
+                "Invalid key length: expected {} bytes, got {} bytes",
+                Self::KEY_SIZE,
+                key.len()
+            ));
+        }
+        Ok((&key[0..8], &key[8..16], &key[16..24]))
+    }
+}
+
 impl BlockCipher for TripleDes {
     const BLOCK_SIZE: usize = 8; // 3DES block size in bytes
     const KEY_SIZE: usize = 24; // 3DES key size in bytes (192 bits i.e 3 * 64 bits)
@@ -350,32 +376,6 @@ impl BlockCipher for TripleDes {
         } else {
             Ok(plaintext)
         }
-    }
-}
-
-#[allow(unused)]
-impl TripleDes {
-    /// Creates a new instance of TripleDes. Takes no arguments.
-    pub fn new() -> Self {
-        Self { des: Des }
-    }
-
-    /// Splits a TripleDes key into 3 individual DES keys
-    /// # Arguments
-    /// * `key` - A byte slice representing the TripleDes key.
-    /// # Returns
-    /// - `Ok((k1, k2, k3))` - A tuple containing three induvidual DES keys.
-    /// - `Err(String)` - An error message if the key length is not the same as the expected number
-    /// of bytes.
-    fn split_keys(key: &[u8]) -> Result<(&[u8], &[u8], &[u8]), String> {
-        if key.len() != Self::KEY_SIZE {
-            return Err(format!(
-                "Invalid key length: expected {} bytes, got {} bytes",
-                Self::KEY_SIZE,
-                key.len()
-            ));
-        }
-        Ok((&key[0..8], &key[8..16], &key[16..24]))
     }
 }
 
