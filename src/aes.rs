@@ -21,7 +21,6 @@ impl BlockCipher for Aes {
 #[allow(unused)]
 mod tests {
     use super::Aes;
-    use aes::Aes128 as AesImpl;
 
     fn test_encryption_aes() {
         unimplemented!()

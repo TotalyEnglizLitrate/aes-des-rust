@@ -212,7 +212,7 @@ impl TripleDes {
 #[allow(unused)]
 mod tests {
     use super::{Des, TripleDes};
-    use des::{Des as DesImpl, TdesEde3 as TripleDesImpl};
+    use crate::block_cipher::BlockCipher;
 
     #[test]
     fn test_encrytion_des() {
