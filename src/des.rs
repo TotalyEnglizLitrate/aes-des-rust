@@ -337,7 +337,7 @@ impl TripleDes {
     /// # Arguments
     /// * `key` - A byte slice representing the TripleDes key.
     /// # Returns
-    /// - `Ok((k1, k2, k3))` - A tuple containing three induvidual DES keys.
+    /// - `Ok((k1, k2, k3))` - A tuple containing three individual DES keys.
     /// - `Err(String)` - An error message if the key length is not the same as the expected number
     /// of bytes.
     fn split_keys(key: &[u8]) -> Result<(&[u8], &[u8], &[u8]), String> {
@@ -399,6 +399,7 @@ impl BlockCipher<8, 24> for TripleDes {
     }
 }
 
+#[allow(dead_code)]
 fn set_key_parity(key: &mut [u8]) {
     for byte in key.iter_mut() {
         if byte.count_ones() & 1 == 0 {
