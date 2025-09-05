@@ -1,6 +1,7 @@
 /// A trait representing a generic cryptographic algorithm.
 /// This trait defines the essential methods and constants required for encryption and decryption
 /// operations.
+#[allow(unused)]
 pub trait BlockCipher {
     /// The block size of the algorithm in bytes.
     /// For example, AES has a block size of 16 bytes (128 bits).
@@ -135,6 +136,23 @@ pub trait BlockCipher {
             .iter()
             .any(|&byte| byte as usize != padding_length)
     }
+
+    /// Validates the length of the provided key.
+    /// # Arguments
+    /// * `key` - The key to be validated.
+    /// # Returns
+    /// - `Ok(())`: If the key length is valid.
+    /// - `Err(String)`: An error message if the key length is invalid.
+    fn validate_key(key: &[u8]) -> Result<(), String> {
+        if key.len() != Self::KEY_SIZE {
+            return Err(format!(
+                "Invalid key length: expected {} bytes, got {} bytes",
+                Self::KEY_SIZE,
+                key.len()
+            ));
+        }
+        Ok(())
+    }
 }
 
 #[cfg(test)]
@@ -190,5 +208,13 @@ mod tests {
         let decrypted = cipher.decrypt(&ciphertext, key).unwrap();
 
         assert_eq!(plaintext.to_vec(), decrypted);
+    }
+
+    #[test]
+    fn test_validate_key() {
+        let valid_key = b"12345678";
+        assert!(DummyCipher::validate_key(valid_key).is_ok());
+        let invalid_key = b"12345";
+        assert!(DummyCipher::validate_key(invalid_key).is_err());
     }
 }
