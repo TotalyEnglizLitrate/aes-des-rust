@@ -2,6 +2,7 @@ use crate::block_cipher::BlockCipher;
 
 /// Advanced Encryption Standard (AES) implementation.
 /// Implements the [BlockCipher] trait.
+#[allow(unused)]
 pub struct Aes;
 
 impl BlockCipher for Aes {
@@ -17,6 +18,7 @@ impl BlockCipher for Aes {
 }
 
 #[cfg(test)]
+#[allow(unused)]
 mod tests {
     use super::Aes;
     use aes::Aes128 as AesImpl;

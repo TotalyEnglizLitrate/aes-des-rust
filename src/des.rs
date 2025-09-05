@@ -2,15 +2,18 @@ use crate::block_cipher::BlockCipher;
 
 /// Data Encryption Standard (DES) implementation.
 /// implements the [BlockCipher] trait.
+#[allow(unused)]
 pub struct Des;
 
 /// Triple Data Encryption Standard (3DES) implementation.
 /// Internally uses [Des] for encryption and decryption.
 /// Implements the [BlockCipher] trait.
+#[allow(unused)]
 pub struct TripleDes {
     des: Des,
 }
 
+#[allow(unused)]
 impl BlockCipher for Des {
     const BLOCK_SIZE: usize = 8; // DES block size in bytes
     const KEY_SIZE: usize = 7; // DES key size in bytes (56 bits)
@@ -45,6 +48,7 @@ impl BlockCipher for TripleDes {
     }
 }
 
+#[allow(unused)]
 impl TripleDes {
     /// Creates a new instance of TripleDes. Takes no arguments.
     pub fn new() -> Self {
@@ -71,6 +75,7 @@ impl TripleDes {
 }
 
 #[cfg(test)]
+#[allow(unused)]
 mod tests {
     use super::{Des, TripleDes};
     use des::{Des as DesImpl, TdesEde3 as TripleDesImpl};
