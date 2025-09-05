@@ -188,6 +188,21 @@ impl BlockCipher for Des {
 
 #[allow(unused)]
 impl Des {
+    /// Performs the Feistel function for a single DES round.
+    ///
+    /// # Arguments
+    /// * `r` - A `u32` value representing the 32-bit right half of the block.
+    /// * `round_key` - A reference to a 6-byte array representing the 48-bit round key.
+    ///
+    /// # Returns
+    /// * A `u32` value representing the 32-bit output of the Feistel function.
+    ///
+    /// # Example
+    /// ```
+    /// let r: u32 = 0x12345678;
+    /// let round_key: [u8; 6] = [0x1B, 0x02, 0xEF, 0xCD, 0xAB, 0x89];
+    /// let result = Des::feistel(r, &round_key);
+    /// ```
     fn feistel(r: u32, round_key: &[u8; 6]) -> u32 {
         // Expansion (E): expand 32 bits to 48 bits
         let mut expanded = 0u64;
@@ -225,6 +240,19 @@ impl Des {
         p_out
     }
 
+    /// Performs the initial permutation (IP) on the input block.
+    ///
+    /// # Arguments
+    /// * `block` - A reference to an 8-byte array representing the 64-bit input block.
+    ///
+    /// # Returns
+    /// * A `u64` value representing the permuted 64-bit block.
+    ///
+    /// # Example
+    /// ```
+    /// let block: [u8; 8] = [0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xF0];
+    /// let permuted = Des::initial_permutation(&block);
+    /// ```
     fn initial_permutation(block: &[u8; 8]) -> u64 {
         let mut out = 0u64;
         for (i, &ip) in IP.iter().enumerate() {
@@ -234,6 +262,19 @@ impl Des {
         out
     }
 
+    /// Performs the final permutation (IP^-1) on the input block.
+    ///
+    /// # Arguments
+    /// * `block` - A `u64` value representing the 64-bit input block after all rounds.
+    ///
+    /// # Returns
+    /// * An 8-byte array `[u8; 8]` representing the permuted 64-bit block.
+    ///
+    /// # Example
+    /// ```
+    /// let block: u64 = 0x123456789ABCDEF0;
+    /// let permuted = Des::final_permutation(block);
+    /// ```
     fn final_permutation(block: u64) -> [u8; 8] {
         let mut out = [0u8; 8];
         for (i, &fp) in FP.iter().enumerate() {
@@ -244,6 +285,23 @@ impl Des {
         out
     }
 
+    /// Generates the 16 round keys for the DES encryption/decryption process.
+    ///
+    /// # Arguments
+    /// * `key` - A reference to an 8-byte array representing the 64-bit key.
+    ///
+    /// # Returns
+    /// * A 2D array `[[u8; 6]; 16]` where each inner array represents a 48-bit round key.
+    ///
+    /// # Panics
+    /// This function will panic if the provided key is not exactly 8 bytes long.
+    ///
+    /// # Example
+    /// ```
+    /// let key: [u8; 8] = [0x13, 0x34, 0x57, 0x79, 0x9B, 0xBC, 0xDF, 0xF1];
+    /// let round_keys = Des::round_keys(&key);
+    /// assert_eq!(round_keys.len(), 16);
+    /// ```
     fn round_keys(key: &[u8; 8]) -> [[u8; 6]; 16] {
         // Apply PC-1 permutation to get 56-bit key
         let mut permuted_key = [0u8; 7];
@@ -323,7 +381,7 @@ impl Des {
     /// let value: u32 = 0b1111000011001100101010101111;
     /// let shifted = left_circular_shift_28(value, 2);
     /// assert_eq!(shifted, 0b1100001100110010101010111111);
-    /// ``
+    /// ```
     fn left_circular_shift_28(value: u32, positions: usize) -> u32 {
         let mask = 0x0FFFFFFF;
         let shifted = ((value << positions) | (value >> (28 - positions))) & mask;
