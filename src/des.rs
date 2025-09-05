@@ -1,4 +1,5 @@
 use crate::{block_cipher::BlockCipher, constants::des::*};
+use rand::random;
 
 /// Data Encryption Standard (DES) implementation.
 /// implements the [BlockCipher] trait.
@@ -230,7 +231,7 @@ impl Des {
     }
 
     fn validate_key(key: &[u8]) -> Result<(), String> {
-        <Self as BlockCipher>::validate_key(key)?;
+        <Self as BlockCipher<8, 8>>::validate_key(key)?;
         if key.iter().all(|&b| b.count_ones() & 1 == 1) {
             Ok(())
         } else {
@@ -239,10 +240,8 @@ impl Des {
     }
 }
 
-impl BlockCipher for Des {
-    const BLOCK_SIZE: usize = 8; // DES block size in bytes
-    const KEY_SIZE: usize = 8; // DES key size in bytes (64 bits, including parity)
-    fn encrypt(&self, plaintext: &[u8], key: &[u8], pad: bool) -> Result<Vec<u8>, String> {
+impl BlockCipher<8, 8> for Des {
+    fn encrypt(plaintext: &[u8], key: &[u8], pad: bool) -> Result<Vec<u8>, String> {
         Self::validate_key(key)?;
 
         // Pad plaintext if needed
@@ -283,7 +282,7 @@ impl BlockCipher for Des {
         Ok(ciphertext)
     }
 
-    fn decrypt(&self, ciphertext: &[u8], key: &[u8], unpad: bool) -> Result<Vec<u8>, String> {
+    fn decrypt(ciphertext: &[u8], key: &[u8], unpad: bool) -> Result<Vec<u8>, String> {
         Self::validate_key(key)?;
 
         let key_arr: [u8; 8] = key.try_into().map_err(|_| "Key must be 8 bytes")?;
@@ -318,6 +317,12 @@ impl BlockCipher for Des {
             Ok(plaintext.to_vec())
         }
     }
+
+    fn gen_key() -> [u8; Self::KEY_SIZE] {
+        let mut key: [u8; Self::KEY_SIZE] = random();
+        set_key_parity(&mut key);
+        key
+    }
 }
 
 /// Triple Data Encryption Standard (3DES) implementation.
@@ -347,17 +352,13 @@ impl TripleDes {
     }
 }
 
-impl BlockCipher for TripleDes {
-    const BLOCK_SIZE: usize = 8; // 3DES block size in bytes
-    const KEY_SIZE: usize = 24; // 3DES key size in bytes (192 bits i.e 3 * 64 bits)
-    fn encrypt(&self, plaintext: &[u8], key: &[u8], pad: bool) -> Result<Vec<u8>, String> {
+impl BlockCipher<8, 24> for TripleDes {
+    fn encrypt(plaintext: &[u8], key: &[u8], pad: bool) -> Result<Vec<u8>, String> {
         let (k1, k2, k3) = Self::split_keys(key)?;
 
         Des::validate_key(k1)?;
         Des::validate_key(k2)?;
         Des::validate_key(k3)?;
-
-        let des = Des;
 
         // Pad plaintext if needed
         let padded = match (pad, Self::is_padded(plaintext)) {
@@ -367,28 +368,41 @@ impl BlockCipher for TripleDes {
         };
 
         // 3DES: Encrypt with K1, Decrypt with K2, Encrypt with K3
-        let first_encryption = des.encrypt(&padded, k1, false)?;
-        let decryption = des.decrypt(&first_encryption, k2, false)?;
-        des.encrypt(&decryption, k3, false)
+        let first_encryption = Des::encrypt(&padded, k1, false)?;
+        let decryption = Des::decrypt(&first_encryption, k2, false)?;
+        Des::encrypt(&decryption, k3, false)
     }
 
-    fn decrypt(&self, ciphertext: &[u8], key: &[u8], unpad: bool) -> Result<Vec<u8>, String> {
+    fn decrypt(ciphertext: &[u8], key: &[u8], unpad: bool) -> Result<Vec<u8>, String> {
         let (k1, k2, k3) = Self::split_keys(key)?;
 
         Des::validate_key(k1)?;
         Des::validate_key(k2)?;
         Des::validate_key(k3)?;
 
-        let des = Des;
-
         // 3DES: Decrypt with K3, Encrypt with K2, Decrypt with K1
-        let first_decryption = des.decrypt(ciphertext, k3, false)?;
-        let encryption = des.encrypt(&first_decryption, k2, false)?;
-        let plaintext = des.decrypt(&encryption, k1, false)?;
+        let first_decryption = Des::decrypt(ciphertext, k3, false)?;
+        let encryption = Des::encrypt(&first_decryption, k2, false)?;
+        let plaintext = Des::decrypt(&encryption, k1, false)?;
+
         if unpad {
             Self::unpad(&plaintext)
         } else {
             Ok(plaintext)
+        }
+    }
+
+    fn gen_key() -> [u8; Self::KEY_SIZE] {
+        let mut key: [u8; Self::KEY_SIZE] = random();
+        set_key_parity(&mut key);
+        key
+    }
+}
+
+fn set_key_parity(key: &mut [u8]) {
+    for byte in key.iter_mut() {
+        if byte.count_ones() & 1 == 0 {
+            *byte = *byte ^ 1;
         }
     }
 }
@@ -396,24 +410,13 @@ impl BlockCipher for TripleDes {
 #[cfg(test)]
 mod tests {
     use super::{BlockCipher, Des, TripleDes};
-    use rand::Rng;
-
-    fn set_key_parity(key: &mut [u8]) {
-        for byte in key.iter_mut() {
-            if byte.count_ones() & 1 == 0 {
-                *byte = *byte ^ 1;
-            }
-        }
-    }
 
     #[test]
     fn test_encrytion_decryption_des() {
         let plaintext = "Food for thought";
-        let mut key: [u8; 8] = rand::rng().random();
-        set_key_parity(&mut key);
-        let des = Des;
-        let ciphertext = des.encrypt(plaintext.as_bytes(), &key, true).unwrap();
-        let decrypted = des.decrypt(&ciphertext, &key, true).unwrap();
+        let key = Des::gen_key();
+        let ciphertext = Des::encrypt(plaintext.as_bytes(), &key, true).unwrap();
+        let decrypted = Des::decrypt(&ciphertext, &key, true).unwrap();
 
         println!("key: {:?}\nciphertext: {:?}", key, ciphertext);
 
@@ -423,11 +426,9 @@ mod tests {
     #[test]
     fn test_encrytion_decryption_3des() {
         let plaintext = "Food for thought";
-        let mut key: [u8; 24] = rand::rng().random();
-        set_key_parity(&mut key);
-        let tripledes = TripleDes;
-        let ciphertext = tripledes.encrypt(plaintext.as_bytes(), &key, true).unwrap();
-        let decrypted = tripledes.decrypt(&ciphertext, &key, true).unwrap();
+        let key = TripleDes::gen_key();
+        let ciphertext = TripleDes::encrypt(plaintext.as_bytes(), &key, true).unwrap();
+        let decrypted = TripleDes::decrypt(&ciphertext, &key, true).unwrap();
 
         println!("key: {:?}\nciphertext: {:?}", key, ciphertext);
 
