@@ -459,11 +459,12 @@ impl TripleDes {
 #[cfg(test)]
 mod tests {
     use super::{BlockCipher, Des, TripleDes};
+    use rand::Rng;
 
     #[test]
     fn test_encrytion_decryption_des() {
         let plaintext = "Hello World!";
-        let key = [0u8; 8];
+        let key: [u8; 8] = rand::rng().random();
         let des = Des;
         let ciphertext = des.encrypt(plaintext.as_bytes(), &key).unwrap();
         let decrypted = des.decrypt(&ciphertext, &key).unwrap();
@@ -474,7 +475,7 @@ mod tests {
     #[test]
     fn test_encrytion_decryption_3des() {
         let plaintext = "Hello World!";
-        let key = [0u8; 24];
+        let key: [u8; 24] = rand::rng().random();
         let tripledes = TripleDes::new();
         let ciphertext = tripledes.encrypt(plaintext.as_bytes(), &key).unwrap();
         let decrypted = tripledes.decrypt(&ciphertext, &key).unwrap();
