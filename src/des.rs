@@ -436,7 +436,7 @@ mod tests {
 
         println!("key: {:?}\nciphertext: {:?}", key, ciphertext);
 
-        assert_eq!(plaintext, String::from_utf8(decrypted).unwrap());
+        assert_eq!(plaintext.as_bytes(), decrypted.as_slice());
     }
 
     #[test]
@@ -448,6 +448,6 @@ mod tests {
 
         println!("key: {:?}\nciphertext: {:?}", key, ciphertext);
 
-        assert_eq!(plaintext, String::from_utf8(decrypted).unwrap());
+        assert_eq!(plaintext.as_bytes(), decrypted.as_slice());
     }
 }
