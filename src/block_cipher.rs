@@ -92,10 +92,6 @@ pub trait BlockCipher<const BLOCK_SIZE: usize, const KEY_SIZE: usize> {
     /// assert_eq!(unpadded_data.unwrap(), b"YELLOW SUBMARINE");
     /// ```
     fn unpad(data: &[u8]) -> Result<Vec<u8>, String> {
-        if data.is_empty() {
-            return Err("Data is empty, cannot unpad".into());
-        }
-
         let padding_length = *data.last().ok_or("Data is empty, cannot unpad")? as usize;
 
         if !(1..=BLOCK_SIZE).contains(&padding_length) {
