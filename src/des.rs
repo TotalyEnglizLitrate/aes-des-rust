@@ -230,7 +230,22 @@ impl Des {
         ((c as u64) << 28) | (d as u64)
     }
 
+    /// Validates the DES key to ensure it meets the required criteria.
+    /// # Arguments
+    /// * `key` - A byte slice representing the DES key.
+    /// # Returns
+    /// - `Ok(())` - If the key is valid.
+    /// - `Err(String)` - An error message if the key is invalid.
+    /// # Criteria
+    /// - The key must be exactly 8 bytes long.
+    /// - Each byte in the key must have odd parity (i.e., an odd number of '1' bits).
+    /// # Example
+    /// ```
+    /// let key: [u8; 8] = [0x13, 0x34, 0x57, 0x79, 0x9B, 0xBC, 0xDF, 0xF1];
+    /// assert!(Des::validate_key(&key).is_ok());
+    /// ```
     fn validate_key(key: &[u8]) -> Result<(), String> {
+        // Defer to the BlockCipher trait for length validation
         <Self as BlockCipher<8, 8>>::validate_key(key)?;
         if key.iter().all(|&b| b.count_ones() & 1 == 1) {
             Ok(())
