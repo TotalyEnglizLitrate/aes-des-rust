@@ -33,10 +33,7 @@ impl Des {
 
         let mut expanded_bytes = [0u8; 6];
         for i in 0..6 {
-            expanded_bytes[i] = ((expanded >> (8 * (5 - i))) & 0xFF) as u8;
-        }
-        for i in 0..6 {
-            expanded_bytes[i] ^= round_key[i];
+            expanded_bytes[i] = ((expanded >> (8 * (5 - i))) & 0xFF) as u8 ^ round_key[i];
         }
 
         let xor_val: u64 = expanded_bytes
