@@ -278,10 +278,11 @@ impl BlockCipher<8, 8> for Des {
 
             let mut l = (block_u64 >> 32) as u32;
             let mut r = (block_u64 & 0xFFFF_FFFF) as u32;
+            let mut temp;
 
             // 16 rounds
             for i in 0..16 {
-                let temp = r;
+                temp = r;
                 r = l ^ Self::feistel(r, &round_keys[i]);
                 l = temp;
             }
@@ -310,10 +311,11 @@ impl BlockCipher<8, 8> for Des {
 
             let mut l = (block_u64 >> 32) as u32;
             let mut r = (block_u64 & 0xFFFF_FFFF) as u32;
+            let mut temp;
 
             // 16 rounds in reverse order
             for i in (0..16).rev() {
-                let temp = r;
+                temp = r;
                 r = l ^ Self::feistel(r, &round_keys[i]);
                 l = temp;
             }
