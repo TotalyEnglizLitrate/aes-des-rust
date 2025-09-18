@@ -15,7 +15,6 @@ use self::{
 
 #[derive(Parser)]
 #[command(
-    name = "aes_des_cli",
     version = "v1.0.1",
     about = "A CLI tool for AES, DES, and 3DES encryption/decryption"
 )]
