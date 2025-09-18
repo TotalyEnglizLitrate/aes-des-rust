@@ -3,101 +3,80 @@ mod block_cipher;
 mod constants;
 mod des;
 
-use aes::Aes128;
-use block_cipher::BlockCipher;
-use clap::{Arg, ArgAction, ArgGroup, Command};
-use des::{Des, TripleDes};
 use std::fs;
 
-fn main() {
-    let matches = Command::new("AES/DES CLI")
-        .version("1.0")
-        .author("Narendra Sampath Kumar <narendra24110064@snuchennai.edu.in>")
-        .about("Encrypt or decrypt strings or files using AES, DES, or 3DES algorithms")
-        .arg(
-            Arg::new("algorithm")
-                .short('a')
-                .long("algorithm")
-                .value_name("ALGORITHM")
-                .help("Specifies the encryption algorithm")
-                .value_parser(["aes", "des", "3des"])
-                .required(true),
-        )
-        .arg(
-            Arg::new("mode")
-                .short('m')
-                .long("mode")
-                .value_name("MODE")
-                .help("Specifies the operation mode")
-                .required(true)
-                .value_parser(["encrypt", "decrypt"]),
-        )
-        .arg(
-            Arg::new("key")
-                .short('k')
-                .long("key")
-                .value_name("KEY")
-                .help("Specifies the encryption/decryption key (required for decryption)"),
-        )
-        .arg(
-            Arg::new("string")
-                .short('s')
-                .long("string")
-                .value_name("STRING")
-                .help("The string to process"),
-        )
-        .arg(
-            Arg::new("file")
-                .short('f')
-                .long("file")
-                .value_name("FILE")
-                .help("The file to process"),
-        )
-        .arg(
-            Arg::new("hex")
-                .long("hex")
-                .action(ArgAction::SetTrue)
-                .help("Specifies that the input string is hex-encoded"),
-        )
-        .arg(
-            Arg::new("output")
-                .short('o')
-                .long("output")
-                .value_name("OUTPUT")
-                .help("Specifies the file to write the output (ciphertext or decrypted text)"),
-        )
-        .group(
-            ArgGroup::new("input")
-                .args(&["string", "file"])
-                .required(true),
-        )
-        .get_matches();
+use clap::Parser;
 
-    let algorithm = matches
-        .get_one::<String>("algorithm")
-        .unwrap()
-        .to_ascii_lowercase();
-    let mode = matches.get_one::<String>("mode").unwrap();
+use self::{
+    aes::Aes128,
+    block_cipher::BlockCipher,
+    des::{Des, TripleDes},
+};
+
+#[derive(Parser)]
+#[command(
+    name = "aes_des_cli",
+    version = "v1.0.1",
+    about = "A CLI tool for AES, DES, and 3DES encryption/decryption"
+)]
+struct CliOptions {
+    #[arg(
+        short, long, value_parser = ["aes", "des", "3des"],
+        help = "Specifies the encryption algorithm to use.",
+    )]
+    algorithm: String,
+
+    #[arg(
+        short, long,
+        value_parser = ["encrypt", "decrypt"], default_value = "encrypt",
+        help = "Specifies the operation mode.",
+    )]
+    mode: String,
+
+    #[arg(
+        short,
+        long,
+        required_if_eq("mode", "decrypt"),
+        help = "Specifies the encryption/decryption key (required for decryption)."
+    )]
+    key: Option<String>,
+
+    #[arg(short, long, help = "The string to process.", group = "input")]
+    string: Option<String>,
+
+    #[arg(short, long, help = "The file to process.", group = "input")]
+    file: Option<String>,
+
+    #[arg(long, help = "Specifies that the input string is hex-encoded.")]
+    hex: bool,
+
+    #[arg(
+        short,
+        long,
+        help = "Specifies the file to write the output (ciphertext or decrypted text). Ciphertext will be written in hex format."
+    )]
+    output: Option<String>,
+}
+
+fn main() {
+    let matches = CliOptions::parse();
+    let algorithm = matches.algorithm;
+    let mode = matches.mode;
     let key = matches
-        .get_one::<String>("key")
+        .key
         .map(|s| {
-            hex_string_to_bytes(s).unwrap_or_else(|err| {
+            hex_string_to_bytes(&s).unwrap_or_else(|err| {
                 eprintln!("Invalid hex key: {}", err);
                 std::process::exit(1);
             })
         })
         .or(None);
 
-    if mode == "decrypt" && key.is_none() {
-        eprintln!("Error: A key must be provided for decryption.");
-        return;
-    }
-
     // Handle input data properly based on mode and hex flag
-    let input_bytes = if let Some(string) = matches.get_one::<String>("string") {
-        if matches.get_flag("hex") {
+    let input_bytes = if let Some(string) = matches.string {
+        if matches.hex {
             // For hex input, convert directly to bytes without UTF-8 conversion
-            match hex_string_to_bytes(string) {
+            match hex_string_to_bytes(&string) {
                 Ok(bytes) => bytes,
                 Err(err) => {
                     eprintln!("Invalid hex string: {}", err);
@@ -108,10 +87,10 @@ fn main() {
             // For regular string input, convert to bytes
             string.as_bytes().to_vec()
         }
-    } else if let Some(file) = matches.get_one::<String>("file") {
+    } else if let Some(file) = matches.file {
         match fs::read_to_string(file) {
             Ok(content) => {
-                if matches.get_flag("hex") {
+                if matches.hex {
                     // If file content is hex, convert to bytes
                     match hex_string_to_bytes(content.trim()) {
                         Ok(bytes) => bytes,
@@ -178,7 +157,7 @@ fn main() {
                 println!("Decrypted output: {}", bytes_to_utf8_string(&output));
             }
 
-            if let Some(output_file) = matches.get_one::<String>("output") {
+            if let Some(output_file) = &matches.output {
                 let write_result = if mode == "encrypt" {
                     fs::write(output_file, bytes_to_hex_string(&output))
                 } else {
