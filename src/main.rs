@@ -205,13 +205,13 @@ fn bytes_to_hex_string(bytes: &[u8]) -> String {
         out[i * 2] = HEX[(b >> 4) as usize];
         out[i * 2 + 1] = HEX[(b & 0x0f) as usize];
     }
-    // SAFETY: bytes are valid ASCII hex
-    unsafe { String::from_utf8_unchecked(out) }
+    String::from_utf8(out).unwrap()
 }
 
 fn bytes_to_utf8_string(bytes: &[u8]) -> String {
     String::from_utf8(bytes.to_vec()).unwrap_or_else(|_| {
-        eprintln!("Warning: Non-UTF8 bytes encountered, using lossy conversion.");
+        // Warning has ANSI escape code for yellow text<F2>
+        eprintln!("\x1b[1;33mWarning\x1b[0m: Non-UTF8 bytes encountered, using lossy conversion.");
         String::from_utf8_lossy(bytes).to_string()
     })
 }
