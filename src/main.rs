@@ -1,13 +1,8 @@
-mod aes;
-mod block_cipher;
-mod des;
-mod helper;
-
 use std::fs;
 
 use clap::Parser;
 
-use self::{
+use aes_des_rust::{
     aes::Aes128,
     block_cipher::BlockCipher,
     des::{Des, TripleDes},
@@ -15,7 +10,7 @@ use self::{
 
 #[derive(Parser)]
 #[command(
-    version = "v1.0.1",
+    version = "v1.0.2",
     about = "A CLI tool for AES, DES, and 3DES encryption/decryption"
 )]
 struct CliOptions {
@@ -148,13 +143,9 @@ fn main() {
 
     match result {
         Ok(output) => {
-            println!("Using key: {}", bytes_to_hex_string(&used_key));
-            if mode == "encrypt" {
-                println!("Encrypted output: {}", bytes_to_utf8_string(&output));
-                println!("Encrypted output (hex): {}", bytes_to_hex_string(&output));
-            } else {
-                println!("Decrypted output: {}", bytes_to_utf8_string(&output));
-            }
+            println!("{}ed output: {}", mode, bytes_to_utf8_string(&output));
+            println!("{}ed output (hex): {}", mode, bytes_to_hex_string(&output));
+            println!("\nUsing key: {}", bytes_to_hex_string(&used_key));
 
             if let Some(output_file) = &matches.output {
                 let write_result = if mode == "encrypt" {
@@ -215,3 +206,4 @@ fn bytes_to_utf8_string(bytes: &[u8]) -> String {
         String::from_utf8_lossy(bytes).to_string()
     })
 }
+
