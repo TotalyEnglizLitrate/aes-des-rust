@@ -1,4 +1,4 @@
-use crate::{block_cipher::BlockCipher, constants::aes::*};
+use crate::{block_cipher::BlockCipher, helper::aes::*};
 use rand::random;
 
 /// Advanced Encryption Standard (AES) implementation.

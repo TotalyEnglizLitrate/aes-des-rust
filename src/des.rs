@@ -1,4 +1,4 @@
-use crate::{block_cipher::BlockCipher, constants::des::*};
+use crate::{block_cipher::BlockCipher, helper::des::*};
 use rand::random;
 
 /// Data Encryption Standard (DES) implementation.
