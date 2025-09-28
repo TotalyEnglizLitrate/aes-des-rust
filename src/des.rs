@@ -363,6 +363,8 @@ fn set_key_parity(key: &mut [u8]) {
 
 #[cfg(test)]
 mod tests {
+    use crate::helper::hex_string_to_bytes;
+
     use super::{BlockCipher, Des, TripleDes};
 
     #[test]
@@ -379,13 +381,25 @@ mod tests {
 
     #[test]
     fn test_encryption_decryption_3des() {
-        let plaintext = "Food for thought";
-        let key = TripleDes::gen_key();
-        let ciphertext = TripleDes::encrypt(plaintext.as_bytes(), &key, true).unwrap();
-        let decrypted = TripleDes::decrypt(&ciphertext, &key, true).unwrap();
+        {
+            let plaintext = "Food for thought";
+            let key = TripleDes::gen_key();
+            let ciphertext = TripleDes::encrypt(plaintext.as_bytes(), &key, true).unwrap();
+            let decrypted = TripleDes::decrypt(&ciphertext, &key, true).unwrap();
 
-        println!("key: {:?}\nciphertext: {:?}", key, ciphertext);
+            println!("key: {:?}\nciphertext: {:?}", key, ciphertext);
 
-        assert_eq!(plaintext.as_bytes(), decrypted.as_slice());
+            assert_eq!(plaintext.as_bytes(), decrypted.as_slice());
+        }
+
+        // for submission
+        {
+            let plaintext = hex_string_to_bytes("0123456789ABCDEF").unwrap();
+            let key = hex_string_to_bytes("133457799BBCDFF1").unwrap();
+            let ciphertext = Des::encrypt(&plaintext, &key, false).unwrap();
+            let decrypted = Des::decrypt(&ciphertext, &key, false).unwrap();
+
+            assert_eq!(decrypted, plaintext);
+        }
     }
 }

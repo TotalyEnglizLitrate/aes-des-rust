@@ -37,6 +37,42 @@ pub trait BlockCipher<const BLOCK_SIZE: usize, const KEY_SIZE: usize> {
     /// - `Err(String)`: An error message if decryption fails.
     fn decrypt(ciphertext: &[u8], key: &[u8], unpad: bool) -> Result<Vec<u8>, String>;
 
+    /// Encrypts a single block using the specified key.
+    ///
+    /// # Arguments
+    /// * `plaintext` - The data to be encrypted.
+    /// * `key` - The key used for encryption.
+    ///
+    /// # Returns
+    /// - `Ok(Vec<u8>)`: A vector containing the encryption data.
+    /// - `Err(String)`: An error message if encryption fails.
+    fn encrypt_block(plaintext: &[u8], key: &[u8]) -> Result<Vec<u8>, String> {
+        if plaintext.len() != Self::BLOCK_SIZE {
+            return Err(format!("Expected ciphertext block of length {}, got {}", Self::BLOCK_SIZE, plaintext.len()))
+        }
+
+        Self::encrypt(plaintext, key, !Self::is_padded(plaintext))
+    }
+
+
+    /// Decrypts the given a single block using the specified key.
+    ///
+    /// # Arguments
+    /// * `ciphertext` - The data to be decrypted.
+    /// * `key` - The key used for decryption.
+    ///
+    /// # Returns
+    /// - `Ok(Vec<u8>)`: A vector containing the decrypted data.
+    /// - `Err(String)`: An error message if decryption fails.
+     fn decrypt_block(ciphertext: &[u8], key: &[u8]) -> Result<Vec<u8>, String> {
+        if ciphertext.len() != Self::BLOCK_SIZE {
+            return Err(format!("Expected ciphertext block of length {}, got {}", Self::BLOCK_SIZE, ciphertext.len()))
+        }
+
+        Self::decrypt(ciphertext, key, false)
+    }
+
+
     /// Pads the input data to ensure its length is a multiple of the block size.
     /// This method uses PKCS#7 padding scheme.
     /// # Arguments

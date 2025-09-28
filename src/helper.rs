@@ -271,3 +271,47 @@ pub mod des {
         3, 61, 53, 45, 37, 29, 21, 13, 5, 63, 55, 47, 39, 31, 23, 15, 7,
     ];
 }
+
+
+fn hex_char_value(b: u8) -> Option<u8> {
+    match b {
+        b'0'..=b'9' => Some(b - b'0'),
+        b'a'..=b'f' => Some(b - b'a' + 10),
+        b'A'..=b'F' => Some(b - b'A' + 10),
+        _ => None,
+    }
+}
+
+pub fn hex_string_to_bytes(hex: &str) -> Result<Vec<u8>, String> {
+    let bytes = hex.as_bytes();
+    if bytes.len() % 2 != 0 {
+        return Err("Hex string must have an even number of characters".into());
+    }
+    let mut out = Vec::with_capacity(bytes.len() / 2);
+    for i in (0..bytes.len()).step_by(2) {
+        let hi = hex_char_value(bytes[i])
+            .ok_or_else(|| format!("Invalid hex character at position {}", i))?;
+        let lo = hex_char_value(bytes[i + 1])
+            .ok_or_else(|| format!("Invalid hex character at position {}", i + 1))?;
+        out.push((hi << 4) | lo);
+    }
+    Ok(out)
+}
+
+pub fn bytes_to_hex_string(bytes: &[u8]) -> String {
+    const HEX: &[u8; 16] = b"0123456789abcdef";
+    let mut out = vec![0u8; bytes.len() * 2];
+    for (i, &b) in bytes.iter().enumerate() {
+        out[i * 2] = HEX[(b >> 4) as usize];
+        out[i * 2 + 1] = HEX[(b & 0x0f) as usize];
+    }
+    String::from_utf8(out).unwrap()
+}
+
+pub fn bytes_to_utf8_string(bytes: &[u8]) -> String {
+    String::from_utf8(bytes.to_vec()).unwrap_or_else(|_| {
+        // Warning has ANSI escape code for yellow text<F2>
+        eprintln!("\x1b[1;33mWarning\x1b[0m: Non-UTF8 bytes encountered, using lossy conversion.");
+        String::from_utf8_lossy(bytes).to_string()
+    })
+}

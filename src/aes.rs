@@ -271,17 +271,31 @@ impl Aes128 {
 
 #[cfg(test)]
 mod tests {
+    use crate::helper::hex_string_to_bytes;
+
     use super::{Aes128, BlockCipher};
 
     #[test]
     fn test_encryption_decryption_aes() {
-        let plaintext = "Food for thought";
-        let key = Aes128::gen_key();
-        let ciphertext = Aes128::encrypt(plaintext.as_bytes(), &key, true).unwrap();
-        let decrypted = Aes128::decrypt(&ciphertext, &key, true).unwrap();
+        {
+            let plaintext = "Food for thought";
+            let key = Aes128::gen_key();
+            let ciphertext = Aes128::encrypt(plaintext.as_bytes(), &key, true).unwrap();
+            let decrypted = Aes128::decrypt(&ciphertext, &key, true).unwrap();
 
-        println!("key: {:?}\nciphertext: {:?}", key, ciphertext);
+            println!("key: {:?}\nciphertext: {:?}", key, ciphertext);
 
-        assert_eq!(plaintext.as_bytes(), decrypted.as_slice());
+            assert_eq!(plaintext.as_bytes(), decrypted.as_slice());
+        }
+
+        // for submission
+        {
+            let plaintext = hex_string_to_bytes("00112233445566778899aabbccddeeff").unwrap();
+            let key = hex_string_to_bytes("000102030405060708090a0b0c0d0e0f").unwrap();
+            let ciphertext = Aes128::encrypt(&plaintext, &key, false).unwrap();
+            let decrypted = Aes128::decrypt(&ciphertext, &key, false).unwrap();
+
+            assert_eq!(decrypted, plaintext);
+        }
     }
 }
