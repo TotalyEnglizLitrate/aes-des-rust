@@ -369,23 +369,11 @@ mod tests {
 
     #[test]
     fn test_encryption_decryption_des() {
-        let plaintext = "Food for thought";
-        let key = Des::gen_key();
-        let ciphertext = Des::encrypt(plaintext.as_bytes(), &key, true).unwrap();
-        let decrypted = Des::decrypt(&ciphertext, &key, true).unwrap();
-
-        println!("key: {:?}\nciphertext: {:?}", key, ciphertext);
-
-        assert_eq!(plaintext.as_bytes(), decrypted.as_slice());
-    }
-
-    #[test]
-    fn test_encryption_decryption_3des() {
         {
             let plaintext = "Food for thought";
-            let key = TripleDes::gen_key();
-            let ciphertext = TripleDes::encrypt(plaintext.as_bytes(), &key, true).unwrap();
-            let decrypted = TripleDes::decrypt(&ciphertext, &key, true).unwrap();
+            let key = Des::gen_key();
+            let ciphertext = Des::encrypt(plaintext.as_bytes(), &key, true).unwrap();
+            let decrypted = Des::decrypt(&ciphertext, &key, true).unwrap();
 
             println!("key: {:?}\nciphertext: {:?}", key, ciphertext);
 
@@ -400,6 +388,20 @@ mod tests {
             let decrypted = Des::decrypt(&ciphertext, &key, false).unwrap();
 
             assert_eq!(decrypted, plaintext);
+        }
+    }
+
+    #[test]
+    fn test_encryption_decryption_3des() {
+        {
+            let plaintext = "Food for thought";
+            let key = TripleDes::gen_key();
+            let ciphertext = TripleDes::encrypt(plaintext.as_bytes(), &key, true).unwrap();
+            let decrypted = TripleDes::decrypt(&ciphertext, &key, true).unwrap();
+
+            println!("key: {:?}\nciphertext: {:?}", key, ciphertext);
+
+            assert_eq!(plaintext.as_bytes(), decrypted.as_slice());
         }
     }
 }

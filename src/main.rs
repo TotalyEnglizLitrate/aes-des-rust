@@ -11,7 +11,7 @@ use aes_des_rust::{
 
 #[derive(Parser)]
 #[command(
-    version = "v1.0.2",
+    version = "v1.0.3",
     about = "A CLI tool for AES, DES, and 3DES encryption/decryption"
 )]
 struct CliOptions {
