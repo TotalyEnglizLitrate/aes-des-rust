@@ -5,35 +5,24 @@ use rand::random;
 /// operations.
 /// # Generic parameters
 /// * `BLOCK_SIZE` - The block size used by the algorithm in bytes. For example, AES-128 has a block size size of 16 bytes (128 bits).
-/// * `KEY_SIZE` - The key size used by the algorithm in bytes. For example, AES-128 has a key size
-/// of 16 bytes (128 bits)
-#[allow(unused)]
+/// * `KEY_SIZE` - The key size used by the algorithm in bytes. For example, AES-128 has a key size of 16 bytes (128 bits)
 pub trait BlockCipher<const BLOCK_SIZE: usize, const KEY_SIZE: usize> {
     const BLOCK_SIZE: usize = BLOCK_SIZE;
-    const KEY_SIZE: usize = KEY_SIZE;
 
     /// The key size of the algorithm in bytes.
     /// For example, AES-128 has a key size of 16 bytes (128 bits).
+    const KEY_SIZE: usize = KEY_SIZE;
 
     /// Encrypts the given plaintext using the specified key.
     ///
     /// # Arguments
     /// * `plaintext` - The data to be encrypted.
     /// * `key` - The key used for encryption.
-    /// * `pad` - Whether to pad the plaintext before encryption - set to false to omit ONLY IF
-    /// DATA IS PADDED ELSEWHERE
+    /// * `pad` - Whether to pad the plaintext before encryption - set to false to omit ONLY IF DATA IS PADDED ELSEWHERE
     ///
     /// # Returns
     /// - `Ok(Vec<u8>)`: A vector containing the encrypted data.
     /// - `Err(String)`: An error message if encryption fails.
-    ///
-    /// # Examples
-    /// ```
-    /// let algorithm: <T: impl BlockCipher> = YourAlgorithmImplementation;
-    /// let plaintext = b"Hello, World!";
-    /// let key = b"your-encryption-key";
-    /// let ciphertext = algorithm.encrypt(plaintext, key).unwrap();
-    /// ```
     fn encrypt(plaintext: &[u8], key: &[u8], pad: bool) -> Result<Vec<u8>, String>;
 
     /// Decrypts the given ciphertext using the specified key.
@@ -41,20 +30,12 @@ pub trait BlockCipher<const BLOCK_SIZE: usize, const KEY_SIZE: usize> {
     /// # Arguments
     /// * `ciphertext` - The data to be decrypted.
     /// * `key` - The key used for decryption.
-    /// * `unpad` - Wheter to unpad the decrypted plaintext data - set to false to omit
+    /// * `unpad` - Whether to unpad the decrypted plaintext data - set to false to omit
     ///
     /// # Returns
     /// - `Ok(Vec<u8>)`: A vector containing the decrypted data.
     /// - `Err(String)`: An error message if decryption fails.
-    ///
-    /// # Examples
-    /// ```
-    /// let algorithm: <T: impl BlockCipher> = YourAlgorithmImplementation;
-    /// let ciphertext = b"EncryptedData";
-    /// let key = b"your-encryption-key";
-    /// let plaintext = algorithm.decrypt(ciphertext, key).unwrap();
-    /// ```
-    fn decrypt(ciphertext: &[u8], key: &[u8], pad: bool) -> Result<Vec<u8>, String>;
+    fn decrypt(ciphertext: &[u8], key: &[u8], unpad: bool) -> Result<Vec<u8>, String>;
 
     /// Pads the input data to ensure its length is a multiple of the block size.
     /// This method uses PKCS#7 padding scheme.
@@ -62,18 +43,11 @@ pub trait BlockCipher<const BLOCK_SIZE: usize, const KEY_SIZE: usize> {
     /// * `data` - The input data to be padded.
     /// # Returns
     /// - A vector containing the padded data.
-    /// # Examples
-    /// ```
-    /// let algorithm: <T: impl BlockCipher> = YourAlgorithmImplementation;
-    /// let data = b"YELLOW SUBMARINE";
-    /// let padded_data = algorithm.pad(data);
-    /// assert!(algorithm.is_padded(&padded_data));
-    /// ```
     fn pad(data: &[u8]) -> Vec<u8> {
         let padding_needed = BLOCK_SIZE - (data.len() % BLOCK_SIZE);
         let mut padded_data = Vec::with_capacity(data.len() + padding_needed);
         padded_data.extend_from_slice(data);
-        padded_data.extend(std::iter::repeat(padding_needed as u8).take(padding_needed));
+        padded_data.extend(std::iter::repeat_n(padding_needed as u8, padding_needed));
         padded_data
     }
 
@@ -83,14 +57,6 @@ pub trait BlockCipher<const BLOCK_SIZE: usize, const KEY_SIZE: usize> {
     /// # Returns
     /// - `Ok(Vec<u8>)`: A vector containing the unpadded data.
     /// - `Err(String)`: An error message if unpadding fails.
-    /// # Examples
-    /// ```
-    /// // Assumes block is 4 bytes for this example
-    /// let algorithm: <T: impl BlockCipher> = YourAlgorithmImplementation;
-    /// let padded_data = b"YELLOW SUBMARINE\x04\x04\x04\x04";
-    /// let unpadded_data = algorithm.unpad(padded_data);
-    /// assert_eq!(unpadded_data.unwrap(), b"YELLOW SUBMARINE");
-    /// ```
     fn unpad(data: &[u8]) -> Result<Vec<u8>, String> {
         let padding_length = *data.last().ok_or("Data is empty, cannot unpad")? as usize;
 
@@ -113,17 +79,6 @@ pub trait BlockCipher<const BLOCK_SIZE: usize, const KEY_SIZE: usize> {
     /// * `data` - The input data to be checked.
     /// # Returns
     /// - true if the data is correctly padded, false otherwise.
-    /// # Examples
-    /// ```
-    /// // Assumes block is 4 bytes for this example
-    /// let algorithm: <T: impl BlockCipher> = YourAlgorithmImplementation;
-    /// let padded_data = b"YELLOW SUBMARINE\x04\x04\x04\x04";
-    /// let is_padded = algorithm.is_padded(padded_data);
-    /// assert!(is_padded);
-    /// let unpadded_data = b"YELLOW SUBMARINE";
-    /// let is_padded = algorithm.is_padded(unpadded_data);
-    /// assert!(!is_padded);
-    /// ```
     fn is_padded(data: &[u8]) -> bool {
         if data.is_empty() {
             return false;
@@ -143,11 +98,6 @@ pub trait BlockCipher<const BLOCK_SIZE: usize, const KEY_SIZE: usize> {
     /// Generate a key for the block cipher. Takes no arguments
     /// # Returns
     /// A valid key byte-array
-    /// # Examples
-    /// ```
-    /// let algorithm: <T: impl BlockCipher> = YourAlgorithmImplementation;
-    /// let key = algorithm.gen_key();
-    /// ```
     fn gen_key() -> [u8; KEY_SIZE] {
         random()
     }

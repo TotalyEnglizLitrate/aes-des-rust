@@ -3,10 +3,8 @@ use rand::random;
 
 /// Data Encryption Standard (DES) implementation.
 /// implements the [BlockCipher] trait.
-#[allow(unused)]
 pub struct Des;
 
-#[allow(dead_code)]
 impl Des {
     /// Performs the Feistel function for a single DES round.
     ///
@@ -16,13 +14,6 @@ impl Des {
     ///
     /// # Returns
     /// * A `u32` value representing the 32-bit output of the Feistel function.
-    ///
-    /// # Example
-    /// ```
-    /// let r: u32 = 0x12345678;
-    /// let round_key: [u8; 6] = [0x1B, 0x02, 0xEF, 0xCD, 0xAB, 0x89];
-    /// let result = Des::feistel(r, &round_key);
-    /// ```
     fn feistel(r: u32, round_key: &[u8; 6]) -> u32 {
         // Expansion (E): expand 32 bits to 48 bits
         let mut expanded = 0u64;
@@ -55,7 +46,7 @@ impl Des {
         let mut p_out = 0u32;
         for (i, &p) in P.iter().enumerate() {
             let bit = (sbox_out >> (32 - p)) & 1;
-            p_out |= (bit as u32) << (31 - i);
+            p_out |= (bit) << (31 - i);
         }
         p_out
     }
@@ -67,12 +58,6 @@ impl Des {
     ///
     /// # Returns
     /// * A `u64` value representing the permuted 64-bit block.
-    ///
-    /// # Example
-    /// ```
-    /// let block: [u8; 8] = [0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xF0];
-    /// let permuted = Des::initial_permutation(&block);
-    /// ```
     fn initial_permutation(block: &[u8; 8]) -> u64 {
         let mut out = 0u64;
         for (i, &ip) in IP.iter().enumerate() {
@@ -89,12 +74,6 @@ impl Des {
     ///
     /// # Returns
     /// * An 8-byte array `[u8; 8]` representing the permuted 64-bit block.
-    ///
-    /// # Example
-    /// ```
-    /// let block: u64 = 0x123456789ABCDEF0;
-    /// let permuted = Des::final_permutation(block);
-    /// ```
     fn final_permutation(block: u64) -> [u8; 8] {
         let mut out = [0u8; 8];
         for (i, &fp) in FP.iter().enumerate() {
@@ -112,16 +91,6 @@ impl Des {
     ///
     /// # Returns
     /// * A 2D array `[[u8; 6]; 16]` where each inner array represents a 48-bit round key.
-    ///
-    /// # Panics
-    /// This function will panic if the provided key is not exactly 8 bytes long.
-    ///
-    /// # Example
-    /// ```
-    /// let key: [u8; 8] = [0x13, 0x34, 0x57, 0x79, 0x9B, 0xBC, 0xDF, 0xF1];
-    /// let round_keys = Des::round_keys(&key);
-    /// assert_eq!(round_keys.len(), 16);
-    /// ```
     fn round_keys(key: &[u8; 8]) -> [[u8; 6]; 16] {
         // Apply PC-1 permutation to get 56-bit key
         let mut permuted_key = [0u8; 7];
@@ -167,13 +136,6 @@ impl Des {
     ///
     /// # Returns
     /// * A `u32` value containing the lower 28 bits filled with the extracted bits.
-    ///
-    /// # Example
-    /// ```
-    /// let key: [u8; 7] = [0b11110000, 0b11001100, 0b10101010, 0b11110000, 0b11001100, 0b10101010, 0b11110000];
-    /// let extracted = extract_28_bits(&key, 0);
-    /// assert_eq!(extracted, 0b1111000011001100101010101111);
-    /// ```
     fn extract_28_bits(key: &[u8; 7], start_bit: usize) -> u32 {
         let mut result = 0u32;
         for i in 0..28 {
@@ -194,17 +156,9 @@ impl Des {
     ///
     /// # Returns
     /// * A `u32` value representing the left-circular-shifted 28-bit value.
-    ///
-    /// # Example
-    /// ```
-    /// let value: u32 = 0b1111000011001100101010101111;
-    /// let shifted = left_circular_shift_28(value, 2);
-    /// assert_eq!(shifted, 0b1100001100110010101010111111);
-    /// ```
     fn left_circular_shift_28(value: u32, positions: usize) -> u32 {
         let mask = 0x0FFFFFFF;
-        let shifted = ((value << positions) | (value >> (28 - positions))) & mask;
-        shifted
+        ((value << positions) | (value >> (28 - positions))) & mask
     }
 
     /// Helper function to combine two 28-bit halves into a 56-bit value.
@@ -215,14 +169,6 @@ impl Des {
     ///
     /// # Returns
     /// * A `u64` value representing the combined 56-bit value.
-    ///
-    /// # Example
-    /// ```
-    /// let c: u32 = 0b1111000011001100101010101111;
-    /// let d: u32 = 0b0000111100001111000011110000;
-    /// let combined = combine_28_bit_halves(c, d);
-    /// assert_eq!(combined, 0b1111000011001100101010101111000011110000111100001111);
-    /// ```
     fn combine_28_bit_halves(c: u32, d: u32) -> u64 {
         ((c as u64) << 28) | (d as u64)
     }
@@ -236,11 +182,6 @@ impl Des {
     /// # Criteria
     /// - The key must be exactly 8 bytes long.
     /// - Each byte in the key must have odd parity (i.e., an odd number of '1' bits).
-    /// # Example
-    /// ```
-    /// let key: [u8; 8] = [0x13, 0x34, 0x57, 0x79, 0x9B, 0xBC, 0xDF, 0xF1];
-    /// assert!(Des::validate_key(&key).is_ok());
-    /// ```
     fn validate_key(key: &[u8]) -> Result<(), String> {
         // Defer to the BlockCipher trait for length validation
         <Self as BlockCipher<8, 8>>::validate_key(key)?;
@@ -352,8 +293,7 @@ impl TripleDes {
     /// * `key` - A byte slice representing the TripleDes key.
     /// # Returns
     /// - `Ok((k1, k2, k3))` - A tuple containing three individual DES keys.
-    /// - `Err(String)` - An error message if the key length is not the same as the expected number
-    /// of bytes.
+    /// - `Err(String)` - An error message if the key length is not the same as the expected number of bytes.
     fn split_keys(key: &[u8]) -> Result<(&[u8], &[u8], &[u8]), String> {
         if key.len() != Self::KEY_SIZE {
             return Err(format!(
@@ -413,11 +353,10 @@ impl BlockCipher<8, 24> for TripleDes {
     }
 }
 
-#[allow(dead_code)]
 fn set_key_parity(key: &mut [u8]) {
     for byte in key.iter_mut() {
         if byte.count_ones() & 1 == 0 {
-            *byte = *byte ^ 1;
+            *byte ^= 1;
         }
     }
 }
@@ -427,7 +366,7 @@ mod tests {
     use super::{BlockCipher, Des, TripleDes};
 
     #[test]
-    fn test_encrytion_decryption_des() {
+    fn test_encryption_decryption_des() {
         let plaintext = "Food for thought";
         let key = Des::gen_key();
         let ciphertext = Des::encrypt(plaintext.as_bytes(), &key, true).unwrap();
@@ -439,7 +378,7 @@ mod tests {
     }
 
     #[test]
-    fn test_encrytion_decryption_3des() {
+    fn test_encryption_decryption_3des() {
         let plaintext = "Food for thought";
         let key = TripleDes::gen_key();
         let ciphertext = TripleDes::encrypt(plaintext.as_bytes(), &key, true).unwrap();

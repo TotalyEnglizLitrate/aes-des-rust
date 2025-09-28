@@ -3,10 +3,8 @@ use rand::random;
 
 /// Advanced Encryption Standard (AES) implementation.
 /// Implements the [BlockCipher] trait.
-#[allow(unused)]
 pub struct Aes128;
 
-#[allow(unused)]
 impl BlockCipher<16, 16> for Aes128 {
     const BLOCK_SIZE: usize = 16; // AES block size in bytes
     const KEY_SIZE: usize = 16; // AES key size in bytes (128 bits)
@@ -117,15 +115,10 @@ impl BlockCipher<16, 16> for Aes128 {
 impl Aes128 {
     /// Expands the key into 11 round keys for AES-128
     ///
-    /// Arguments:
+    /// # Arguments:
     /// * `key` - A 16-byte array representing the original key
-    /// Returns:
+    /// # Returns:
     /// * A vector of 11 round keys, each being a 16-byte array
-    /// Example:
-    /// ```
-    /// let key: [u8; 16] = rand::random();
-    /// let round_keys = Aes128::key_expansion(&key);
-    /// ```
     fn key_expansion(key: &[u8]) -> Vec<[u8; 16]> {
         let mut key_schedule = vec![[0u8; 16]; 11];
         key_schedule[0].copy_from_slice(key);
@@ -148,17 +141,11 @@ impl Aes128 {
     }
 
     /// Key schedule core function for key expansion
-    /// Arguments:
+    /// # Arguments:
     /// * `word` - A 4-byte array (last 4 bytes of previous round key)
     /// * `round` - The current round number (1 to 10)
-    /// Returns:
+    /// # Returns:
     /// * A transformed 4-byte array
-    /// Example:
-    /// ```
-    /// let word: [u8; 4] = [0x01, 0x02, 0x03, 0x04];
-    /// let round = 1;
-    /// let transformed = Aes128::key_schedule_core(word, round);
-    /// ```
     fn key_schedule_core(mut word: [u8; 4], round: usize) -> [u8; 4] {
         word.rotate_left(1);
 
@@ -171,15 +158,10 @@ impl Aes128 {
     }
 
     /// Convert a 16-byte block to a 4x4 state matrix (column-major)
-    /// Arguments:
+    /// # Arguments:
     /// * `block` - A 16-byte array representing the block
-    /// Returns:
+    /// # Returns:
     /// * A 4x4 matrix (array of arrays) representing the state
-    /// Example:
-    /// ```
-    /// let block: [u8; 16] = [0; 16];
-    /// let state = Aes128::block_to_state(&block);
-    /// ```
     fn block_to_state(block: &[u8]) -> [[u8; 4]; 4] {
         let mut state = [[0u8; 4]; 4];
         for i in 0..16 {
@@ -189,15 +171,10 @@ impl Aes128 {
     }
 
     /// Convert a 4x4 state matrix to a 16-byte block (column-major)
-    /// Arguments:
+    /// # Arguments:
     /// * `state` - A 4x4 matrix (array of arrays) representing the state
-    /// Returns:
+    /// # Returns:
     /// * A 16-byte array representing the block
-    /// Example:
-    /// ```
-    /// let state: [[u8; 4]; 4] = [[0; 4]; 4];
-    /// let block = Aes128::state_to_block(state);
-    /// ```
     fn state_to_block(state: [[u8; 4]; 4]) -> [u8; 16] {
         let mut block = [0u8; 16];
         for i in 0..16 {
@@ -207,16 +184,11 @@ impl Aes128 {
     }
 
     /// XOR state with round key
-    /// Arguments:
+    /// # Arguments:
     /// * `state` - A 4x4 matrix (array of arrays) representing the state
     /// * `round_key` - A 16-byte array representing the round key
-    /// Returns:
-    /// * A 4x4 matrix (array of arrays) after XOR with the round
-    /// key
-    /// Example:
-    /// ```
-    /// let state: [[u8; 4]; 4] = [[0; 4]; 4];
-    /// let round_key: [u8; 16] = [0; 16];
+    /// # Returns:
+    /// * A 4x4 matrix (array of arrays) after XOR with the round key
     fn add_round_key(mut state: [[u8; 4]; 4], round_key: &[u8; 16]) -> [[u8; 4]; 4] {
         for i in 0..16 {
             state[i % 4][i / 4] ^= round_key[i];
@@ -225,15 +197,10 @@ impl Aes128 {
     }
 
     /// Apply S-box substitution to each byte in the state
-    /// Arguments:
+    /// # Arguments:
     /// * `state` - A 4x4 matrix (array of arrays) representing the state
-    /// Returns:
+    /// # Returns:
     /// * A 4x4 matrix (array of arrays) after S-box substitution
-    /// Example:
-    /// ```
-    /// let state: [[u8; 4]; 4] = [[0; 4]; 4];
-    /// let substituted = Aes128::sub_bytes(state);
-    /// ```
     fn sub_bytes(mut state: [[u8; 4]; 4]) -> [[u8; 4]; 4] {
         for i in 0..4 {
             for j in 0..4 {
@@ -245,15 +212,10 @@ impl Aes128 {
     }
 
     /// Apply inverse S-box substitution to each byte in the state
-    /// Arguments:
+    /// # Arguments:
     /// * `state` - A 4x4 matrix (array of arrays) representing the state
-    /// Returns:
+    /// # Returns:
     /// * A 4x4 matrix (array of arrays) after inverse S-box substitution
-    /// Example:
-    /// ```
-    /// let state: [[u8; 4]; 4] = [[0; 4]; 4];
-    /// let inv_substituted = Aes128::inv_sub_bytes(state);
-    /// ```
     fn inv_sub_bytes(mut state: [[u8; 4]; 4]) -> [[u8; 4]; 4] {
         for i in 0..4 {
             for j in 0..4 {
@@ -265,15 +227,10 @@ impl Aes128 {
     }
 
     /// Shift rows of the state matrix
-    /// Arguments:
+    /// # Arguments:
     /// * `state` - A 4x4 matrix (array of arrays) representing the state
-    /// Returns:
+    /// # Returns:
     /// * A 4x4 matrix (array of arrays) after shifting rows
-    /// Example:
-    /// ```
-    /// let state: [[u8; 4]; 4] = [[0; 4]; 4];
-    /// let shifted = Aes128::shift_rows(state);
-    /// ```
     fn shift_rows(mut state: [[u8; 4]; 4]) -> [[u8; 4]; 4] {
         for i in 1..4 {
             state[i].rotate_left(i);
@@ -282,15 +239,10 @@ impl Aes128 {
     }
 
     /// Inverse shift rows of the state matrix
-    /// Arguments:
+    /// # Arguments:
     /// * `state` - A 4x4 matrix (array of arrays) representing the state
-    /// Returns:
+    /// # Returns:
     /// * A 4x4 matrix (array of arrays) after inverse shifting rows
-    /// Example:
-    /// ```
-    /// let state: [[u8; 4]; 4] = [[0; 4]; 4];
-    /// let inv_shifted = Aes128::inv_shift_rows(state);
-    /// ```
     fn inv_shift_rows(mut state: [[u8; 4]; 4]) -> [[u8; 4]; 4] {
         for i in 1..4 {
             state[i].rotate_right(i);
@@ -299,29 +251,19 @@ impl Aes128 {
     }
 
     /// Mix columns transformation
-    /// Arguments:
+    /// # Arguments:
     /// * `state` - A 4x4 matrix (array of arrays) representing the state
-    /// Returns:
+    /// # Returns:
     /// * A 4x4 matrix (array of arrays) after mixing columns
-    /// Example:
-    /// ```
-    /// let state: [[u8; 4]; 4] = [[0; 4]; 4];
-    /// let mixed = Aes128::mix_columns(state);
-    /// ```
     fn mix_columns(state: [[u8; 4]; 4]) -> [[u8; 4]; 4] {
         mix_state(state)
     }
 
     /// Inverse mix columns transformation
-    /// Arguments:
+    /// # Arguments:
     /// * `state` - A 4x4 matrix (array of arrays) representing the state
-    /// Returns:
+    /// # Returns:
     /// * A 4x4 matrix (array of arrays) after inverse mixing columns
-    /// Example:
-    /// ```
-    /// let state: [[u8; 4]; 4] = [[0; 4]; 4];
-    /// let inv_mixed = Aes128::inv_mix_columns(state);
-    /// ```
     fn inv_mix_columns(state: [[u8; 4]; 4]) -> [[u8; 4]; 4] {
         inv_mix_state(state)
     }
